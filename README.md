@@ -1,4 +1,4 @@
-# CSE_145_237D_Smartfin
-# We are developing a more robust data processing framework for accurately determining wave conditions from a surf session.
-# The wave characteristics that we would like to calculate include: wave period and frequency, significant wave height, and wave direction. 
-# We are also trying to develop a better way of visualizing the Smartfin's orientation for future work. 
+# Smartfin
+A hardware-embedded surfboard fin that helps oceanographers collect data on the behaviour of waves.
+
+[!alt_text](https://github.com/hwanggit/Smartfin/blob/master/Presentation_Screenshots/Screen%20Shot%202019-05-08%20at%202.01.41%20PM.png)
