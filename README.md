@@ -4,7 +4,7 @@ The Smartfin Project aims to unite the surfing community and the research commun
 
 ![text](https://github.com/hwanggit/Smartfin/blob/master/Presentation_Screenshots/longboard-smartfin-logo_web1920x1335.jpg)
 
-[#Smartfin Website](https://smartfin.org)
+[Smartfin Website](https://smartfin.org)
 ![text](https://github.com/hwanggit/Smartfin/blob/master/Presentation_Screenshots/Screen%20Shot%202019-05-08%20at%202.01.41%20PM.png)
 
 
