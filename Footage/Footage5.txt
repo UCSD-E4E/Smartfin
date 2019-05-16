@@ -1,0 +1,564 @@
+Filename: Footage5.txt
+Footage taken from: VIRB0021,22,22-2,22-3.MP4
+Date: 02/08/19
+Ride ID: 15962
+
+Description: Rachelle's first surf sesh. Video stopped recording 
+correctly after 10 mins and then continued again on its own. 
+Will try to fix this surf sesh. Small wave day, 2-3ft.  
+
+02:45 sync
+03:12 walking in water
+03:13 push-off
+03:15 paddling into waves
+03:44 sit-up
+03:46 floating
+03:52 turning to surfer's right
+04:08 lay-down
+04:13 paddling for a wave
+04:19 sit-up
+04:24 paddling for a wave
+04:30 pop-up
+04:31 surfing
+04:36 step-off
+04:38 pull-back leash
+04:40 turning to surfer's right
+04:45 walking in water
+04:50 push-off
+04:52 paddling into waves
+05:15 sit-up
+05:16 floating
+05:17 lay-down
+05:18 paddling into waves
+05:21 sit-up
+05:22 turning to surfer's left
+05:24 lay-down
+05:25 paddling for a wave
+05:27 pop-up
+05:28 sit-back
+05:30 floating
+05:32 turning to surfer's right
+05:35 floating
+05:36 turning to surfer's left
+05:40 lay-down
+05:41 paddling for a wave
+05:48 pop-up
+05:49 surfing
+05:57 sit-up
+05:58 turning to surfer's right
+06:00 lay-down
+06:01 paddling into waves
+06:03 walking in water
+06:12 push-off
+06:14 paddling into waves
+06:26 walking in water
+06:29 push-off
+06:31 paddling into waves
+06:48 sit-up
+06:50 floating
+07:00 turning to surfer's right
+07:08 floating
+07:28 lay-down
+07:33 sit-up
+07:35 floating
+07:53 turning to surfer's right
+07:59 floating
+08:01 lay-down
+08:03 paddling for a wave
+08:10 pop-up
+08:11 surfing
+08:17 step-off
+08:20 wipe-out
+08:24 walking in water
+08:31 discard
+08:38 paddling into waves
+08:45 sit-up
+08:47 paddling into waves
+08:55 sit-up
+09:00 floating
+09:03 turning to surfer's left
+09:12 floating
+09:24 lay-down
+09:25 paddling for a wave
+09:30 sit-back
+09:31 discard
+09:38 paddling into waves
+09:44 lay-down
+09:48 floating
+09:52 sit-up
+09:53 floating
+10:13 turning to surfer's right
+10:19 lay-down
+10:20 paddling for a wave
+10:25 discard
+10:43 discard
+25:01 new
+00:00 floating
+00:12 turning to surfer's right
+00:14 floating
+00:16 lay-down
+00:19 paddling for a wave
+00:23 pop-up
+00:25 sit-back
+00:26 turning to surfer's left
+00:32 paddling into waves
+00:36 sit-up
+00:38 floating
+00:52 lay-down
+00:53 paddling into waves
+00:54 sit-up
+00:56 turning to surfer's right
+00:59 floating
+01:53 lay-down
+01:54 paddling for a wave
+02:01 pop-up
+02:04 sit-back
+02:06 turning to surfer's left
+02:09 lay-down
+02:11 paddling for position
+02:39 sit-up
+02:41 floating
+02:46 turning to surfer's right
+02:49 floating
+02:56 turning to surfer's right
+03:01 floating
+03:04 turning to surfer's left
+03:09 floating
+03:21 turning to surfer's right
+03:23 floating
+03:42 lay-down
+03:44 paddling for a wave
+03:48 sit-back
+03:50 floating
+03:51 turning to surfer's left
+03:55 floating
+03:56 lay-down
+03:57 paddling into waves
+04:01 sit-up
+04:04 floating
+04:22 lay-down
+04:24 paddling for position
+04:25 sit-up
+04:26 floating
+04:42 turning to surfer's right
+04:46 lay-down
+04:48 paddling for a wave
+04:54 pop-up
+04:55 surfing
+05:02 step-off
+05:05 pull-back leash
+05:08 turning to surfer's left
+05:11 walking in water
+05:12 push-off
+05:13 paddling into waves
+05:30 sit-up
+05:31 paddling into waves
+05:44 sit-up
+05:46 floating
+06:01 sit-up
+06:03 paddling for position
+06:05 sit-up
+06:07 floating
+06:28 lay-down
+06:30 paddling for position
+06:48 sit-up
+06:50 floating
+06:51 turning to surfer's right
+06:57 floating
+07:11 lay-down
+07:12 paddling for a wave
+07:18 sit-back
+07:24 lay-down
+07:26 paddling for a wave
+07:29 pop-up
+07:31 sit-back
+07:32 turning to surfer's left
+07:35 paddling into waves
+07:45 sit-up
+07:47 floating
+07:55 lay-down
+07:57 paddling into waves
+08:04 sit-up
+08:06 floating
+08:13 turning to surfer's left
+08:18 lay-down
+08:20 paddling for a wave
+08:21 sit-back
+08:30 lay-down
+08:32 floating
+08:34 sit-up
+08:35 turning to surfer's right
+08:38 paddling into waves
+08:45 sit-up
+08:48 floating
+09:04 lay-down
+09:06 paddling into waves
+09:13 sit-up
+09:14 turning to surfer's left
+09:22 floating
+09:43 turning to surfer's left
+09:44 lay-down
+09:45 paddling into waves
+09:49 sit-up
+09:52 turning to surfer's right
+09:55 floating
+09:56 lay-down
+09:57 paddling for a wave
+10:02 pop-up
+10:03 sit-back
+10:05 turning to surfer's left
+10:08 lay-down
+10:09 paddling into waves
+10:36 discard
+10:46 floating
+10:56 turning to surfer's left
+11:04 floating
+11:11 turning to surfer's left
+11:14 floating
+11:18 turning to surfer's left
+11:22 turning to surfer's right
+11:25 floating
+11:37 turning to surfer's right
+11:44 floating
+11:48 turning to surfer's right
+11:56 floating
+12:12 lay-down
+12:13 paddling into waves
+12:17 sit-up
+12:19 turning to surfer's left
+12:24 lay-down
+12:25 paddling for a wave
+12:31 sit-back
+12:33 turning to surfer's right
+12:38 lay-down
+12:39 paddling into waves
+12:52 sit-up
+12:55 floating
+13:07 turning to surfer's left
+13:14 lay-down
+13:16 paddling for a wave
+13:20 sit-up
+13:23 turning to surfer's right
+13:27 paddling into waves
+13:40 sit-up
+13:42 floating
+14:08 turning to surfer's right 
+14:12 lay-down
+14:14 paddling for position
+14:57 sit-up
+14:59 floating
+15:09 lay-down
+15:10 paddling for position
+15:31 sit-up
+15:33 floating
+16:05 turning to surfer's right
+16:07 lay-down
+16:08 paddling for a wave
+16:12 pop-up
+16:15 sit-up
+16:16 turning to surfer's left
+16:21 floating
+16:41 turning to surfer's right
+16:47 lay-down
+16:48 paddling for a wave
+16:53 pop-up
+16:54 sit-back
+16:56 floating
+16:57 turning to surfer's left
+17:00 lay-down
+17:01 paddling into waves
+17:18 sit-up
+17:20 floating
+18:20 turning to surfer's right
+18:24 lay-down
+18:27 paddling for a wave
+18:33 pop-up
+18:34 surfing
+18:43 step-off
+18:45 off-board
+18:48 turning to surfer's left
+18:51 walking in water
+19:18 discard
+19:30 paddling into waves
+19:57 sit-up
+19:59 floating
+20:00 turning to surfer's right
+20:05 floating
+20:20 turning to surfer's left
+20:25 floating
+20:36 turning to surfer's right
+20:41 lay-down
+20:42 paddling for a wave
+20:47 sit-up
+20:50 turning to surfer's right
+20:56 lay-down
+20:57 paddling into waves
+21:02 floating
+21:08 paddling into waves
+21:11 sit-up
+21:12 floating
+21:16 turning to surfer's right
+21:24 floating
+21:35 turning to surfer's right
+21:44 floating
+22:04 lay-down
+22:06 paddling for a wave
+22:11 pop-up
+22:13 sit-back
+22:14 turning to surfer's left
+22:18 lay-down
+22:19 paddling into waves
+22:28 sit-up
+22:29 floating
+23:31 lay-down
+23:33 paddling for position
+23:52 sit-up
+23:53 floating
+23:56 turning to surfer's right
+24:06 floating
+24:44 turning to surfer's left
+24:50 floating
+25:01 new
+00:00 floating
+00:43 lay-down
+00:48 paddling for a wave
+00:56 pop-up
+00:57 surfing
+01:01 wipe-out
+01:06 pull-back leash
+01:09 turning to surfer's right
+01:12 push-off
+01:14 paddling into waves
+01:39 sit-up
+01:40 turning to surfer's left
+01:43 lay-down
+01:44 paddling for a wave
+01:50 sit-back
+01:54 turning to surfer's right
+01:59 lay-down
+02:00 paddling into waves
+02:12 sit-up
+02:13 floating
+02:24 turning to surfer's right
+02:26 lay-down
+02:28 paddling for a wave
+02:35 sit-back
+02:39 paddling for a wave
+02:43 pop-up
+02:44 surfing
+02:52 step-off
+02:54 walking in water
+02:55 turning to surfer's right
+03:03 walking in water
+03:07 push-off
+03:11 walking in water
+03:15 push-off
+03:16 paddling into waves
+03:42 sit-up
+03:43 turning to surfer's right
+03:47 lay-down
+03:48 paddling for a wave
+03:51 sit-up
+03:52 floating
+03:57 lay-down
+03:59 paddling for a wave
+04:02 sit-back
+04:04 turning to surfer's right
+04:08 lay-down
+04:09 paddling into waves
+04:33 sit-up
+04:34 floating
+04:46 turning to surfer's right
+04:54 floating
+04:57 lay-down
+04:58 paddling for a wave
+05:05 pop-up
+05:06 surfing
+05:10 wipe-out
+05:12 discard
+05:30 paddling into waves
+05:46 floating
+05:51 sit-up
+05:53 floating
+07:12 turning to surfer's right
+07:18 lay-down
+07:19 paddling for a wave
+07:27 pop-up
+07:28 surfing
+07:30 wipe-out
+07:33 discard
+07:44 walking in water
+07:47 push-off
+07:49 paddling into waves
+08:10 sit-up
+08:11 turning to surfer's right
+08:13 lay-down
+08:14 paddling for a wave
+08:19 pop-up
+08:20 surfing
+08:25 step-off
+08:27 discard
+08:28 pull-back leash
+08:31 turning to surfer's left
+08:36 push-off
+08:37 paddling into waves
+08:59 sit-up
+09:00 floating
+09:12 turning to surfer's right
+09:18 floating
+09:25 turning to surfer's right
+09:37 lay-down
+09:38 paddling into waves
+09:44 sit-up
+09:45 turning to surfer's left
+09:48 lay-down
+09:49 paddling for a wave
+09:53 pop-up
+09:55 surfing
+09:59 wipe-out
+10:02 pull-back leash
+10:08 turning to surfer's right
+10:12 walking in water
+10:20 discard
+10:44 paddling into waves
+10:55 sit-up
+10:56 floating
+11:00 lay-down
+11:01 paddling into waves
+11:05 sit-up
+11:06 floating
+11:12 turning to surfer's left
+11:30 floating
+11:55 turning to surfer's right
+12:00 floating
+12:10 turning to surfer's left
+12:17 floating
+12:42 turning to surfer's right
+12:48 floating
+12:52 turning to surfer's left
+12:58 floating
+13:19 lay-down
+13:20 paddling for position
+13:27 sit-up
+13:28 turning to surfer's right
+13:33 lay-down
+13:34 padling for a wave
+13:38 pop-up
+13:40 sit-back
+13:42 turning to surfer's left
+13:48 floating
+13:51 lay-down
+13:52 paddling for position 
+13:57 floating
+14:04 paddling for position
+14:10 sit-up
+14:12 paddling for position
+14:17 sit-up
+14:18 floating
+14:37 turning to surfer's right
+14:43 lay-down
+14:45 paddling for a wave
+14:49 pop-up
+14:50 surfing
+14:58 step-off
+14:59 discard
+15:13 push-off
+15:14 paddling into waves
+16:00 sit-up
+16:01 floating
+16:11 turning to surfer's right
+16:16 floating
+16:31 turning to surfer's right
+16:40 turning to surfer's left
+16:43 lay-down
+16:44 paddling for a wave
+16:47 sit-up
+16:50 floating
+16:58 lay-down
+16:59 paddling for a wave
+17:05 pop-up
+17:06 surfing
+17:08 discard
+17:13 pull-back leash
+17:16 turning to surfer's left
+17:18 push-off
+17:22 paddling into waves
+18:05 discard
+18:17 paddling into waves
+18:22 sit-up
+18:23 floating
+18:39 turning to surfer's right
+18:45 lay-down
+18:46 paddling for a wave
+18:55 sit-back
+19:04 lay-down
+19:05 paddling for a wave
+19:11 pop-up
+19:13 surfing
+19:17 step-off
+19:19 pull-back leash
+19:22 turning to surfer's right
+19:27 push-off
+19:29 paddling into waves
+19:45 sit-up
+19:46 turning to surfer's left
+19:49 lay-down
+19:50 paddling for a wave
+19:55 pop-up
+19:56 sit-back
+19:57 discard
+20:10 push-off
+20:13 paddling into waves
+20:20 floating
+20:30 paddling into waves
+20:37 sit-up
+20:39 floating
+20:41 lay-down
+20:42 paddling into waves
+21:00 sit-up
+21:02 floating
+21:28 turning to surfer's left
+21:33 floating
+21:35 turning to surfer's left
+21:43 floating
+22:00 floating
+22:01 paddling for position
+22:28 sit-up
+22:30 floating
+23:28 turning to surfer's right
+23:32 floating
+23:46 lay-down
+23:47 paddling for a wave
+23:51 pop-up
+23:53 sit-back
+23:54 floating
+24:00 lay-down
+24:01 paddling for a wave
+24:05 pop-up
+24:06 surfing
+24:07 step-off
+24:09 turning to surfer's right
+24:13 lay-down
+24:14 paddling into waves
+24:38 sit-up
+24:40 floating
+25:01 new
+00:00 floating
+02:01 lay-down
+02:02 paddling for a wave
+02:06 sit-back
+02:08 floating
+05:15 turning to surfer's left
+05:22 floating
+06:08 turning to surfer's left
+06:13 floating
+07:43 discard
+10:28 paddling for a wave
+10:31 pop-up
+10:32 surfing
+10:36 step-off
+10:37 done
+ 
+
+
+
