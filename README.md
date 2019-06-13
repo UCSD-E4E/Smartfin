@@ -6,8 +6,7 @@ The Smartfin Project aims to unite the surfing community and the research commun
 
 ### Click the Image below to play the video
 
-[![image](https://github.com/hwanggit/Smartfin/blob/master/Images/Screen%20Shot%202019-06-13%20at%203.17.25%20PM.png)]
-(https://youtu.be/wi0JMVOShCc)
+[![image](https://github.com/hwanggit/Smartfin/blob/master/Images/Screen%20Shot%202019-06-13%20at%203.17.25%20PM.png)](https://youtu.be/wi0JMVOShCc)
 
 ![text](https://github.com/hwanggit/Smartfin/blob/master/Images/longboard-smartfin-logo_web1920x1335.jpg)
 
