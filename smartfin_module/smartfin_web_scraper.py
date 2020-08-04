@@ -104,8 +104,8 @@ class Ride:
 
             # Go to ocean_csv_url and grab contents (theoretically, a CSV)
             df = pd.read_csv(csv_url, parse_dates = [0])
-            elapsed_timedelta = (df['UTC']-df['UTC'][0])
-            df['elapsed'] = elapsed_timedelta/np.timedelta64(1, 's')
+            
+
 
             # Reindex on timestamp if there are at least a few rows
             if len(df) > 1:
@@ -113,7 +113,8 @@ class Ride:
 
                 # resample data at new interval
                 sample_interval = '33ms'
-                df_resample = df.resample(sample_interval).mean()
+                df = df.resample(sample_interval).mean()
+                df['TimeDelta'] = (df['Time']-df['Time'][0])
                 return df
 
         else:
