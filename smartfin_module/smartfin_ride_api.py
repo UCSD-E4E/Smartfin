@@ -440,20 +440,20 @@ class Ride:
 
     
     def chunk_data(self, labelled_df, column):
-    """
-    Splits continuous segments of labelled data into a list of chunks of data
-    
-    keyword arguments:
-        - labelled_df (dataframe): dataframe to chunk data from
-        - column (string): data measurement to chunk
-        
-    returns:
-        - chunks (list): list of all data chunks
-        - chunk_times (list): list of times that correspond with each data point in chunks
-        - chunk_start_indices (list): list of indices of each new chunk
-        - chunk_end_indices (list): list of indices of every chunk end
-        - chunk_count (int): count of how many chunks are in chunks
-    """
+        """
+        Splits continuous segments of labelled data into a list of chunks of data
+
+        keyword arguments:
+            - labelled_df (dataframe): dataframe to chunk data from
+            - column (string): data measurement to chunk
+
+        returns:
+            - chunks (list): list of all data chunks
+            - chunk_times (list): list of times that correspond with each data point in chunks
+            - chunk_start_indices (list): list of indices of each new chunk
+            - chunk_end_indices (list): list of indices of every chunk end
+            - chunk_count (int): count of how many chunks are in chunks
+        """
         chunks = []
         chunk_times = []
         chunk_end_indices = []
