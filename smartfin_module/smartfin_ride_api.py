@@ -11,6 +11,21 @@ import netCDF4
 import datetime
 import time
 
+
+# 14743 - Motion Control July 10th
+# 14750 - Magnetometer Control July 11th
+# 14814 - Pool Displacement Control July 17th
+# 14815 - Compass Orientation (Lying on Charger Side) July 19th
+# 14816 - Orientation w Higher Sampling (Lying on Charger Side) July 20th
+# 14827 - Pool Displacement Control w Higher Sampling (Jul 23)
+# 14888 - First Buoy Calibration Experiment (July 30)
+# 15218 - Jasmine's Second Ride Sesh filmed with GoPro (Aug 29) //no footage
+# 15629 - Jasmine's First Ride Sesh filmed with VIRB (Oct. 24) //first labelled footage!
+# 15669 - Jasmine's Second Ride Sesh filmed with VIRB (Nov. 7) //second labelled footage!
+# 15692 - Jasmine's 3rd Ride Sesh filmed with VIRB (Nov. 9) //third labelled footage!
+# 15686 - Jasmine's 4th Ride Sesh filmed with VIRB (Nov. 11) //fourth labelled footage!
+
+
 #%% Fin ID scraper
 # Input fin ID, get all ride IDs
 # base URL to which we'll append given fin IDs
@@ -36,153 +51,41 @@ class Ride:
     def __init__(self):
         self.rides = {}
         
+ 
         
-        
-    def add_ride(self, ride_id, data='motion', convert_imu=False):
-        """
-        adds a ride dataframe to this dictionary 
-        
-        keyword arguments:
-            - ride_id (string): smartfin ride id 
-            - data (string): type of smartfin ride data to scrape 
-                'ocean': get data of ocean conditions of session
-                'motion': get IMU sensor data of session
-            - convert_imu (boolean): whether to return dataframe with converted IMU values to m/s^2 with gravity accounted 
-        
-        """
-        # if ride already exists then don't add it again
-        if (ride_id in self.rides):
-            print('ride already in here')
-            return 
-        
-        
-        data = data.lower()
-
-        # get df from ride number
-        try:
-            # get given ride's CSV from its ride ID using function above
-            df = self.get_csv_from_ride_id(ride_id, data) 
-
-        except: 
-            print("Ride threw an exception!")
-
-        if (data == 'motion'):
-            #Drop the latitude and longitude values since most of them are Nan:
-            df_dropped = df.drop(columns=['Latitude', 'Longitude'])
-
-        #Drop the NAN values from the motion data:
-        df = df_dropped.dropna(axis=0, how='any')
-
-        # add dataframe to dictionary
-        self.rides[ride_id] = df
-
-        if(convert_imu):
-            print(self.rides[ride_id]['IMU A2'].mean())
-            self.rides[ride_id] = df.apply(lambda reading: reading / 512 * 9.80665 + 9.80665 if reading.name == 'IMU A2' else reading)
-            print(self.rides[ride_id]['IMU A2'].mean())
-            
-        
-    def add_rides(self, ride_ids=[], data='motion', convert_imu=False):
-        """
-        adds multiple ride dataframes to this dictionary 
-        
-        keyword arguments:
-            - ride_id (string): smartfin ride id 
-            - data (string): type of smartfin ride data to scrape 
-                'ocean': get data of ocean conditions of session
-                'motion': get IMU sensor data of session
-            - convert_imu (boolean): whether to return dataframe with converted IMU values to m/s^2 with gravity accounted 
-        
-        """
-        for ride in ride_ids:
-            self.add_ride(ride, data, convert_imu)
-    
-    
-    def get_csv_from_ride_id (self, ride_id, data):
-        # Build URL for each individual ride
-        ride_url = ride_url_base+str(ride_id)
-        print(f'fetching ride from: {ride_url}')
-
-        # Get contents of ride_url
-        html_contents = requests.get(ride_url).text
-
-        # Find CSV identifier 
-        loc_csv_id = html_contents.find(str_id_csv)
-
-        # Different based on whether user logged in with FB or Google
-        offset_googleOAuth = [46, 114]
-        offset_facebkOAuth = [46, 112]
-        if html_contents[loc_csv_id+59] == 'f': # Facebook login
-            off0 = offset_facebkOAuth[0]
-            off1 = offset_facebkOAuth[1]
-        else: # Google login
-            off0 = offset_googleOAuth[0]
-            off1 = offset_googleOAuth[1]
-
-        csv_id_longstr = html_contents[loc_csv_id+off0:loc_csv_id+off1]
-        
-        # Stitch together full URL for CSV
-        # other junk URLs can exist and break everything
-        if ("media" in csv_id_longstr) & ("Calibration" not in html_contents): 
-
-            csv_url = ''
-            if (data == 'ocean'):
-                csv_url = f'https://surf.smartfin.org/{csv_id_longstr}Ocean.CSV'
-                print(f'fetching ocean data from: {csv_url}')
-
-            elif (data == 'motion'):
-                csv_url = f'https://surf.smartfin.org/{csv_id_longstr}Motion.CSV'
-                print(f'fetching motion data from: {csv_url}')
-
-            else: 
-                print(f'{data} csv file not found')
-
-            # Go to ocean_csv_url and grab contents (theoretically, a CSV)
-            df = pd.read_csv(csv_url, parse_dates = [0])
-            
-
-
-            # Reindex on timestamp if there are at least a few rows
-            if len(df) > 1:
-                df.set_index('UTC', drop = True, append = False, inplace = True)
-
-                # resample data at new interval
-                sample_interval = '33ms'
-                df = df.resample(sample_interval).mean()
-                df['TimeDelta'] = (df['Time']-df['Time'][0])
-                return df
-
-        else:
-            df = pd.DataFrame() # empty DF just so something is returned
-            return df
-      
-    
-    
-        
-    def get_rides(self, ride_ids=[]):
+    def get_rides(self, ride_ids=[], data='motion', convert_imu=False):
         """
         returns dataframes of smartfin rides
         
         keyword args:
-            - ride_id (string): returns single dataframe of ride_id
             - ride_ids (string array): an array of the ride_ids we want to get. Default is all rides
+            - data (string): type of dataframe to return (motion, ocean)
+            - convert_imu (boolean): whether or not to convert IMU accelerations into m/s^2
             
-        
         returns:
             - dictionary of ride dataframes in the format {ride_id: dataframe}
         """
         returns = {}
         
         ids = self.generate_id_list(ride_ids)
+        
+        # if data is ocean, don't convert imu
+        if(data == 'ocean'): convert_imu = False
+        
+        # load in dataframes if not in directory
+        self.add_rides(ids)
 
         # fill returns with dataframes of ids
         for ride_id in ids:
-            returns[ride_id] = self.rides[ride_id]
+            returns[ride_id] = self.rides[ride_id][data]
             
-        return returns
-
-   
+            # convert imu data 
+            if(convert_imu):
+                returns[ride_id] = returns[ride_id].apply(lambda reading: reading / 512 * 9.80665 + 9.80665 
+                                                              if reading.name == 'IMU A2' 
+                                                              else reading)
             
+        return returns       
          
     
     def get_ride_timeframes(self, ride_ids=[]): 
@@ -199,9 +102,12 @@ class Ride:
         
         ids = self.generate_id_list(ride_ids)
         
+        # load in dataframes if not in directory
+        self.add_rides(ids)
+        
         # get timeframes of all rides in ids list
         for ride_id in ids:
-            returns[ride_id] = self.get_timeframe(self.rides[ride_id])
+            returns[ride_id] = self.get_timeframe(self.rides[ride_id]['motion'])
             
         return returns
     
@@ -219,7 +125,7 @@ class Ride:
     
     
     
-    def get_CDIP_heights(self, station, ride_ids=[]):
+    def get_CDIP_heights(self, station='201', ride_ids=[]):
         """
         Retrieves the average wave height for smartfin rides according to CDIP
         
@@ -304,7 +210,7 @@ class Ride:
             - labelled dataframe of smartfin ride
         """
         
-        df = self.rides[ride_id]
+        df = self.rides[ride_id]['motion']
         # calculate sync_buf which will be used to merge the footage data and the imu data    
         #First, perform sync
         sync_buf = 0
@@ -492,8 +398,47 @@ class Ride:
        
 
 
-    # helper methods
+    # helper methods 
+    def add_ride(self, ride_id):
+        """
+        adds a ride dataframe to this dictionary 
+        
+        """
+        # if ride already exists then don't add it again
+        if (ride_id in self.rides):
+            print('ride already in here')
+            return 
 
+        # get df from ride number
+        # get given ride's CSV from its ride ID using function above
+        dfs = self.get_csv_from_ride_id(ride_id) 
+        odf = dfs[0]
+        mdf = dfs[1]
+
+
+        #Drop the latitude and longitude values since most of them are Nan:
+        mdf_dropped = mdf.drop(columns=['Latitude', 'Longitude'])
+
+        #Drop the NAN values from the motion data:
+        mdf = mdf_dropped.dropna(axis=0, how='any')
+        odf = odf.dropna(axis=0, how='any')
+        
+        self.rides[ride_id] = {}
+
+        # add dataframe to dictionary
+        self.rides[ride_id]['motion'] = mdf
+        self.rides[ride_id]['ocean'] = odf
+            
+        
+    def add_rides(self, ride_ids=[]):
+        """
+        adds multiple ride dataframes to this dictionary 
+        
+        """
+        for ride in ride_ids:
+            self.add_ride(ride)
+        
+    
     def generate_id_list (self, ride_ids):
         
         ids = []
@@ -523,4 +468,60 @@ class Ride:
     def getUnixTimestamp(self, humanTime, dateFormat):
         unixTimestamp = int(time.mktime(datetime.datetime.strptime(humanTime, dateFormat).timetuple()))
         return unixTimestamp
+    
+    
+    
+    
+    def get_csv_from_ride_id (self, ride_id):
+        # Build URL for each individual ride
+        ride_url = ride_url_base+str(ride_id)
+        print(f'fetching ride from: {ride_url}')
+
+        # Get contents of ride_url
+        html_contents = requests.get(ride_url).text
+
+        # Find CSV identifier 
+        loc_csv_id = html_contents.find(str_id_csv)
+
+        # Different based on whether user logged in with FB or Google
+        offset_googleOAuth = [46, 114]
+        offset_facebkOAuth = [46, 112]
+        if html_contents[loc_csv_id+59] == 'f': # Facebook login
+            off0 = offset_facebkOAuth[0]
+            off1 = offset_facebkOAuth[1]
+        else: # Google login
+            off0 = offset_googleOAuth[0]
+            off1 = offset_googleOAuth[1]
+
+        csv_id_longstr = html_contents[loc_csv_id+off0:loc_csv_id+off1]
+        
+        # Stitch together full URL for CSV
+        # other junk URLs can exist and break everything
+        if ("media" in csv_id_longstr) & ("Calibration" not in html_contents): 
+
+            urls = [f'https://surf.smartfin.org/{csv_id_longstr}Ocean.CSV', f'https://surf.smartfin.org/{csv_id_longstr}Motion.CSV']
+            print(f'fetching ocean data from: {urls[0]}')
+            print(f'fetching motion data from: {urls[1]}')
+
+            # Go to ocean_csv_url and grab contents (theoretically, a CSV)
+            dfs = [pd.read_csv(url, parse_dates = [0]) for url in urls]
+           
+            # Reindex on timestamp if there are at least a few rows
+            dfs = [df.set_index('UTC', drop = True, append = False) for df in dfs]
+            
+            # resample data at new interval
+            sample_interval = '33ms'
+            dfs = [df.resample(sample_interval).mean() for df in dfs]
+            dfs[0]['TimeDelta'] = (dfs[0]['Time']-dfs[0]['Time'][0])
+            dfs[1]['TimeDelta'] = (dfs[1]['Time']-dfs[1]['Time'][0])
+
+            return dfs
+
+        else:
+            print('here')
+            df = pd.DataFrame() # empty DF just so something is returned
+            return df
+      
+    
+    
     
