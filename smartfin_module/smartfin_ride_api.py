@@ -10,6 +10,8 @@ import requests
 import netCDF4
 import datetime
 import time
+from bs4 import BeautifulSoup
+import requests
 
 
 # 14743 - Motion Control July 10th
@@ -53,7 +55,7 @@ class Ride:
         
  
         
-    def get_rides(self, ride_ids=[], data='motion', convert_imu=False):
+    def get_rides(self, ride_ids=[], data='motion', convert_imu=True):
         """
         returns dataframes of smartfin rides
         
@@ -69,21 +71,12 @@ class Ride:
         
         ids = self.generate_id_list(ride_ids)
         
-        # if data is ocean, don't convert imu
-        if(data == 'ocean'): convert_imu = False
-        
         # load in dataframes if not in directory
         self.add_rides(ids)
 
         # fill returns with dataframes of ids
         for ride_id in ids:
             returns[ride_id] = self.rides[ride_id][data]
-            
-            # convert imu data 
-            if(convert_imu):
-                returns[ride_id] = returns[ride_id].apply(lambda reading: reading / 512 * 9.80665 + 9.80665 
-                                                              if reading.name == 'IMU A2' 
-                                                              else reading)
             
         return returns       
          
@@ -122,10 +115,9 @@ class Ride:
         end_time = pd.to_datetime(df.index[-1]).strftime('%d/%m/%Y %H:%M:%S')
         return [start_time, end_time]
     
+
     
-    
-    
-    def get_CDIP_heights(self, station='201', ride_ids=[]):
+    def get_CDIP_heights(self, ride_ids=[]):
         """
         Retrieves the average wave height for smartfin rides according to CDIP
         
@@ -141,14 +133,22 @@ class Ride:
         ids = self.generate_id_list(ride_ids)
         
         for ride_id in ids:
-            returns[ride_id] = self.CDIP_web_scrape(ride_id, station)
+            returns[ride_id] = self.CDIP_web_scrape(ride_id)
             
         return returns
+    
+    
         
         
-    def CDIP_web_scrape(self, ride_id, station):
+    def CDIP_web_scrape(self, ride_id):
         
         start_time, end_time = self.get_ride_timeframes(ride_id)[ride_id]
+        
+        # get nearest station
+        latitude = self.rides[ride_id]['motion'].iloc[0]['Latitude']
+        longitude = self.rides[ride_id]['motion'].iloc[0]['Longitude']
+        station = self.get_nearest_station(latitude, longitude)
+        
         data_url = f'http://thredds.cdip.ucsd.edu/thredds/dodsC/cdip/archive/{station}p1/{station}p1_historic.nc'
         print(f'retriving CDIP wave heights from: {data_url}')
         
@@ -186,13 +186,87 @@ class Ride:
         print(f'mean wave height: {mean}')
         
         return [mean, list(ride_hs)]
-        
+
+    
+    
+    def get_nearest_station(self, latitude, longitude):
+
+        # get all active buoys with archived data
+        stns = self.get_active_buoys()
+   
+        # intialize the lowest distance to be some rediculously big number
+        lowest_distance = 1000000000
+        stn = -1
+        count = 0
+
+        # iterate through 0-450 (station numbers are from 28-433 with gaps in between)
+        for i in stns:
+            
+            count += 1
+
+            # format i into a 3 digit string
+            i = str(i)
+            if len(i) == 1:
+                i = '00' + i
+            elif len(i) == 2:
+                i = '0' + i
+
+            # see if there is a station with the current iteration number
+            try:
+                data_url = 'http://thredds.cdip.ucsd.edu/thredds/dodsC/cdip/archive/' + i + 'p1/' + i+ 'p1_historic.nc'
+                nc = netCDF4.Dataset(data_url)
+
+                # get latitude and longitude of current station
+                nc_latitude = nc.variables['metaStationLatitude'][:]
+                nc_longitude = nc.variables['metaStationLongitude'][:]
+                
+                print('', end='\r')
+                print(f'checking for nearest buoy... {count}/{len(stns)}')
+
+                # if the current station distance is lower than the lowest distance so far, save it
+                curr_distance = abs(nc_latitude - latitude) + abs(nc_longitude - longitude)
+                if curr_distance < lowest_distance:
+                    lowest_distance = curr_distance
+                    stn = i
+                else: continue
+
+            except OSError as err:
+                continue
+
+        if stn == -1:
+            print('no station found error')
+            
+        return stn
+
+    
+    
+
+    def get_active_buoys(self):
+        # CDIP active buoys URL
+        url="http://cdip.ucsd.edu/m/deployment/station_view/?mode=active"
+
+        # Make a GET request to fetch the raw HTML content
+        html_content = requests.get(url).text
+
+        # Parse the html content
+        soup = BeautifulSoup(html_content, "lxml")
+        table = soup.find("table")
+        table_data = table.tbody.find_all("tr")  # contains 2 rows
+        stns = []
+        for node in table_data:
+            try:
+                stn = node.findAll('td', text=True)[0]
+                stns.append(stn.text.strip(' '))
+            except:
+                continue
+
+        return stns
         
         
            
     #simple method: only walking, paddling, floating, surfing
     #complex method: columns created based on footage file labels
-    def label_data( self, ride_id, footage_file = '../Labelled_Footage/Footage.txt', labelling_method = 'simple', sync_threshold = 20000 ):
+    def label_data( self, labelled_df, footage_file = '../Labelled_Footage/Footage.txt', labelling_method = 'simple', sync_threshold = 20000 ):
         """
         Returns a labelled dataframe of a smartfin ride according to a corresponding footage file
         
@@ -210,7 +284,7 @@ class Ride:
             - labelled dataframe of smartfin ride
         """
         
-        df = self.rides[ride_id]['motion']
+        df = labelled_df
         # calculate sync_buf which will be used to merge the footage data and the imu data    
         #First, perform sync
         sync_buf = 0
@@ -343,63 +417,11 @@ class Ride:
         labelled = pd.concat([df, label_frame], axis = 1)
         return labelled
 
-
-    
-    def chunk_data(self, labelled_df, column):
-        """
-        Splits continuous segments of labelled data into a list of chunks of data
-
-        keyword arguments:
-            - labelled_df (dataframe): dataframe to chunk data from
-            - column (string): data measurement to chunk
-
-        returns:
-            - chunks (list): list of all data chunks
-            - chunk_times (list): list of times that correspond with each data point in chunks
-            - chunk_start_indices (list): list of indices of each new chunk
-            - chunk_end_indices (list): list of indices of every chunk end
-            - chunk_count (int): count of how many chunks are in chunks
-        """
-        chunks = []
-        chunk_times = []
-        chunk_end_indices = []
-        chunk_start_indices = []
-        chunk_seen = False
-        index = 0
-        chunk_count = 0
-
-        for row in labelled_df.iterrows():
-
-            # if surfing stays 0 
-            if (row[1][column] == 0 and not chunk_seen):
-                chunk_seen = False
-                continue
-
-            # if surfing is 1
-            elif (row[1][column] == 1):
-                if (not chunk_seen): 
-                    chunk_seen = True
-                    chunk_count += 1
-                    chunk_start_indices.append(index)
-
-                index += 1
-                chunks.append(row[1]['IMU A2'])
-                chunk_times.append(row[1]['Time'])
-
-            # if surfing returns from 1 to 0
-            elif (row[1][column] == 0 and chunk_seen):
-
-                chunk_seen = False
-                chunk_end_indices.append(index - 1)
-
-        chunk_times = [time / 1000 for time in chunk_times]
-
-        return chunks, chunk_times, chunk_start_indices, chunk_end_indices, chunk_count
        
 
 
     # helper methods 
-    def add_ride(self, ride_id):
+    def add_ride(self, ride_id, convert_imu=True):
         """
         adds a ride dataframe to this dictionary 
         
@@ -417,12 +439,31 @@ class Ride:
 
 
         #Drop the latitude and longitude values since most of them are Nan:
-        mdf_dropped = mdf.drop(columns=['Latitude', 'Longitude'])
+        # mdf_dropped = mdf.drop(columns=['Latitude', 'Longitude'])
+        mdf_dropped = mdf
 
         #Drop the NAN values from the motion data:
         mdf = mdf_dropped.dropna(axis=0, how='any')
         odf = odf.dropna(axis=0, how='any')
-        
+            
+        # convert imu data 
+        if(convert_imu):
+            mdf = mdf.apply(lambda reading: reading / 512 * 9.80665 - 9.80665 
+                                                         if reading.name == 'IMU A2'
+                                                         else reading)
+            mdf = mdf.apply(lambda reading: reading / 512 * 9.80665
+                                                         if reading.name == 'IMU A1' or reading.name == 'IMU A3'
+                                                         else reading)
+
+            # convert time into seconds
+            mdf['Time'] = [time / 1000 for time in mdf['Time']]
+            
+            # convert latitude and longitude values
+            mdf['Latitude'] = [latitude / 100000 for latitude in mdf['Latitude']]
+            mdf['Longitude'] = [longitude / 100000 for longitude in mdf['Longitude']]
+
+
+    
         self.rides[ride_id] = {}
 
         # add dataframe to dictionary
@@ -525,3 +566,5 @@ class Ride:
     
     
     
+
+# %%
