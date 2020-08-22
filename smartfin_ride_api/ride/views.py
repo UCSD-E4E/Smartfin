@@ -4,14 +4,14 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .serializers import RideSerializer
+from .serializers import RideSerializer #, MotionSerializer, OceanSerializer
 import sys 
 sys.path.append('../')
-from smartfin_ride_module import Ride
+from smartfin_ride_module import RideModule
+from .models import RideData #, OceanData, MotionData
 
 
 # Create your views here.
-    
 @api_view(['GET'])
 def rideOverview(request):
 
@@ -29,19 +29,76 @@ def rideOverview(request):
 
     return Response(api_urls)
 
-       
+# get list of all rides
 @api_view(['GET'])
-def rideCreate(request, ride_id):
+def rideList(request):
 
-    print(ride_id)
-    ride = Ride()
-    data = ride.get_ride_data(ride_id)
-    # serializer = RideSerializer(data)
+    data = RideData.objects.all()
+    serializer = RideSerializer(data, many=True)
+    return Response(serializer.data)
 
-    # if serializer.is_valid():
-    #     print('swagitworks')
-    #     serializer.save()
-    # else:
-    #     print('nah')
 
-    return Response(data)
+# get detailed info of specific ride
+@api_view(['GET'])
+def rideDetail(request, rideId):
+
+    data = RideData.objects.get(rideId=rideId)
+    serializer = RideSerializer(data, many=False)
+    return Response(serializer.data)
+
+# create new ride 
+@api_view(['GET'])
+def rideCreate(request, rideId):
+
+    # fetch data from ride id
+    rideModule = RideModule()
+    data = rideModule.get_ride_data(rideId)
+
+
+    # save ride data into RideData model
+    rideModel = RideData(**data)
+    rideModel.save()
+    print(f'uploaded {sys.getsizeof(data)} bytes of ride data to database...')
+
+
+    # return ride data that was sent to model
+    serializer = RideSerializer(data)
+    return Response(serializer.data)
+
+
+    # rideModule.post_motion_data(mdf, MotionData, rideModel)
+    # rideModule.post_ocean_data(odf, OceanData, rideModel)
+
+
+# @api_view(['GET'])
+# def motionList(request):
+
+#     data = MotionData.objects.all()
+#     serializer = MotionSerializer(data, many=True)
+#     return Response(serializer.data)
+
+
+# @api_view(['GET'])
+# def oceanList(request):
+
+#     data = OceanData.objects.all()
+#     serializer = OceanSerializer(data, many=True)
+#     return Response(serializer.data)
+
+
+# @api_view(['GET'])
+# def motionDetail(request, rideId):
+
+#     data = MotionData.objects.filter(rideId=rideId)
+#     serializer = MotionSerializer(data, many=True)
+#     return Response(serializer.data)
+
+
+# @api_view(['GET'])
+# def oceanDetail(request, rideId):
+
+#     data = OceanData.objects.filter(rideId=rideId)
+#     serializer = OceanSerializer(data, many=True)
+#     return Response(serializer.data)
+
+   

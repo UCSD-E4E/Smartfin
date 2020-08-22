@@ -11,6 +11,7 @@ import datetime
 import time
 from bs4 import BeautifulSoup
 import json
+import sys
 
 
 # 14743 - Motion Control July 10th
@@ -44,10 +45,12 @@ ride_url_base = 'https://surf.smartfin.org/ride/'
 # Look for the following text in the HTML contents in fcn below
 str_id_csv = 'img id="temperatureChart" class="chart" src="' 
 
+
+
 """
 Smartfin Web Scrape API is an interface that allows smartfin users to get data of their smartfin ride. This module interacts with both the smartfin website and CDIP THREDDS API to get smartfin and CDIP data. 
 """
-class Ride:
+class RideModule:
     
     def __init__(self): 
         print('ride initialized')
@@ -89,39 +92,58 @@ class Ride:
 
             # convert time into seconds
             mdf['Time'] = [time / 1000 for time in mdf['Time']]
-            
+
+        mdf['Ride id'] = ride_id
+        odf['Ride id'] = ride_id
+
         # get timeframe
         start_time, end_time = self.get_timeframe(mdf)
-        print(f'calcualting start_time: {start_time}')
-        print(f'calcualting end_time: {end_time}')
+        print(f'calculated start_time: {start_time}')
+        print(f'calculated end_time: {end_time}')
         
     
         # get nearest CDIP buoy
         mean_CDIP, means_CDIP, temp_CDIP, temps_CDIP, nearest_CDIP = self.CDIP_web_scrape(start_time, end_time, latitude, longitude)
         print(f'retrieved nearest CDIP buoy: {nearest_CDIP}')
-        print(f'retrieved CDIP means height for ride: {means_CDIP}')
-        print(f'retrieved CDIP means temp for ride: {temps_CDIP}')
+        print(f'retrieved CDIP mean height for ride: {mean_CDIP}')
+        print(f'retrieved CDIP mean temp for ride: {temp_CDIP}')
 
+        mdf_dict = mdf.to_dict()
+        odf_dict = odf.to_dict()
+
+        print('uploading ride data to database...')
+
+        # format data into dict for ride model
         data = {
-            'ride_id': ride_id, 
-            'start_time': start_time,
-            'end_time': end_time,
-            'CDIP_buoy': nearest_CDIP, 
-            'CDIP_height': mean_CDIP, 
-            'CDIP_temp': temp_CDIP, 
+            'rideId': ride_id, 
+            'startTime': start_time,
+            'endTime': end_time,
+            'buoyCDIP': nearest_CDIP, 
+            'heightCDIP': mean_CDIP, 
+            'tempCDIP': temp_CDIP, 
             'latitude': latitude,
             'longitude': longitude,
+            'motionData': mdf_dict,
+            'oceanData': odf_dict
         }
 
+
+
+        # mdf = mdf.head(200)
+        # odf = odf.head(200)
+
+        # self.post_motion_data(mdf, motion_data, ride_id)
+        # self.post_ocean_data(odf, ocean_data, ride_id)
+
         # data = json.dumps(data)
-        print(type(data['ride_id']))
-        print(type(data['start_time']))
-        print(type(data['end_time']))
-        print(type(data['CDIP_buoy']))
-        print(type(data['CDIP_height']))
-        print(type(data['CDIP_temp']))
-        print(type(data['latitude']))
-        print(type(data['longitude']))
+#         print(type(data['ride_id']))
+#         print(type(data['start_time']))
+#         print(type(data['end_time']))
+#         print(type(data['CDIP_buoy']))
+#         print(type(data['CDIP_height']))
+#         print(type(data['CDIP_temp']))
+#         print(type(data['latitude']))
+#         print(type(data['longitude']))
     
         return data
        
@@ -130,6 +152,53 @@ class Ride:
 
 
     # HELPER FUNCTIONS
+
+    # def post_motion_data(self, df, model, ride_id):
+
+    #     print('uploading motion data to db...')
+
+    #     r = model
+
+    #     for row in df.iterrows():
+    #         data = row[1].to_dict()
+    #         r = model(
+    #             time=data['Time'],
+    #             imuA1=data['IMU A1'],
+    #             imuA2=data['IMU A1'],
+    #             imuA3=data['IMU A1'],
+    #             imuG1=data['IMU A1'],
+    #             imuG2=data['IMU A1'],
+    #             imuG3=data['IMU A1'],
+    #             imuM1=data['IMU A1'],
+    #             imuM2=data['IMU A1'],
+    #             imuM3=data['IMU A1'],
+    #             rideId=ride_id,
+    #         )
+    #         r.save()
+
+
+
+
+    # def post_ocean_data(self, df, model, ride_id):
+
+    #     print('uploading ocean data to db...')
+
+    #     for row in df.iterrows():
+    #         data = row[1].to_dict()
+    #         r = model(
+    #             time=data['Time'],
+    #             temp1=data['Temperature 1'],
+    #             calibratedTemp1=data['Calibrated Temperature 1'],
+    #             temp1Stable=data['Temperature 1 Stable'],
+    #             temp2=data['Temperature 2'],
+    #             calibratedTemp2=data['Calibrated Temperature 2'],
+    #             temp2Stable=data['Temperature 2 Stable'],
+    #             rideId=ride_id,
+    #         )
+    #         r.save()
+    #
+    #         print('finished uploading.')
+
     
     # Find nearest value in ncTime array to inputted UNIX Timestamp
     def find_nearest(self, array, value):
@@ -185,8 +254,6 @@ class Ride:
             # resample data at new interval
             sample_interval = '1000ms'
             dfs = [df.resample(sample_interval).mean() for df in dfs]
-            dfs[0]['TimeDelta'] = (dfs[0]['Time']-dfs[0]['Time'][0])
-            dfs[1]['TimeDelta'] = (dfs[1]['Time']-dfs[1]['Time'][0])
 
             return dfs
 

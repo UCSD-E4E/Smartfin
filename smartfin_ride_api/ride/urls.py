@@ -16,7 +16,14 @@ Including another URLconf
 from django.urls import path
 from . import views
 
+
 urlpatterns = [
     path('', views.rideOverview, name='ride-overview'),
-    path('ride-create/<str:ride_id>/', views.rideCreate, name='ride-create'),
+    path('ride-list/', views.rideList, name='ride-list'),
+    path('ride-create/<str:rideId>/', views.rideCreate, name='ride-create'),
+    # path('motion-list/', views.motionList, name='motion-list'),
+    # path('ocean-list/', views.oceanList, name='ocean-list'),
+    path('ride-detail/<str:rideId>/', views.rideDetail, name='ride-detail'),
+    # path('motion-detail/<str:rideId>/', views.motionDetail, name='motion-detail'),
+    # path('ocean-detail/<str:rideId>/', views.oceanDetail, name='ocean-detail')
 ]
