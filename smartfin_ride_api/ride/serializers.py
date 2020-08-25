@@ -12,6 +12,18 @@ class RideSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class HeightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RideData
+        fields = ['heightSmartfin', 'heightCDIP']
+
+
+class TempSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RideData
+        fields = ['tempSmartfin', 'tempCDIP']
+
+
 # class OceanSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = OceanData

@@ -6,13 +6,17 @@ class RideData(models.Model):
     rideId = models.CharField(max_length=5, primary_key=True) 
     startTime = models.CharField(max_length=20, blank=True, null=True)
     endTime = models.CharField(max_length=20, blank=True, null=True)
+    heightSmartfin = models.FloatField(blank=True, null=True)
+    heightList = models.TextField(blank=True, null=True)
+    heightSampleRate = models.IntegerField(blank=True, null=True)
+    tempSmartfin = models.FloatField(blank=True, null=True)
+    tempList = models.TextField(blank=True, null=True)
+    tempSampleRate = models.IntegerField(blank=True, null=True)
     buoyCDIP = models.CharField(max_length=3)
     heightCDIP = models.FloatField(blank=True, null=True)
     tempCDIP = models.FloatField(blank=True, null=True)
     latitude = models.FloatField(max_length=10, blank=True, null=True)
     longitude = models.FloatField(max_length=10, blank=True, null=True)
-    motionData = models.TextField(blank=True, null=True)
-    oceanData = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return 'ride'

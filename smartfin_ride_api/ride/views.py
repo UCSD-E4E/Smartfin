@@ -4,7 +4,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .serializers import RideSerializer #, MotionSerializer, OceanSerializer
+from .serializers import RideSerializer, HeightSerializer, TempSerializer
 import sys 
 sys.path.append('../')
 from smartfin_ride_module import RideModule
@@ -29,6 +29,7 @@ def rideOverview(request):
 
     return Response(api_urls)
 
+
 # get list of all rides
 @api_view(['GET'])
 def rideList(request):
@@ -41,33 +42,47 @@ def rideList(request):
 # get detailed info of specific ride
 @api_view(['GET'])
 def rideDetail(request, rideId):
-
     data = RideData.objects.get(rideId=rideId)
     serializer = RideSerializer(data, many=False)
     return Response(serializer.data)
+
 
 # create new ride 
 @api_view(['GET'])
 def rideCreate(request, rideId):
 
-    # fetch data from ride id
-    rideModule = RideModule()
-    data = rideModule.get_ride_data(rideId)
+    try: 
+        data = RideData.objects.get(rideId=rideId)
+        print('found ride in database, returning data...')
 
+    except:
+        
+        # fetch data from ride id
+        rideModule = RideModule()
+        data = rideModule.get_ride_data(rideId)
 
-    # save ride data into RideData model
-    rideModel = RideData(**data)
-    rideModel.save()
-    print(f'uploaded {sys.getsizeof(data)} bytes of ride data to database...')
-
+        # save ride data into RideData model
+        rideModel = RideData(**data)
+        rideModel.save()
+        print(f'uploaded {sys.getsizeof(data)} bytes of ride data to database...')
 
     # return ride data that was sent to model
-    serializer = RideSerializer(data)
+    serializer = RideSerializer(data, many=False)
     return Response(serializer.data)
 
 
-    # rideModule.post_motion_data(mdf, MotionData, rideModel)
-    # rideModule.post_ocean_data(odf, OceanData, rideModel)
+@api_view(['GET']) 
+def heightList(request):
+    heights = RideData.objects.values_list('heightSmartfin', 'heightCDIP')
+    data = {'heightSmartfin': heights[0], 'heightCDIP': heights[1]}
+    return JsonResponse(data)
+
+
+@api_view(['GET'])
+def tempList(request):
+    temps = RideData.objects.values_list('tempSmartfin', 'tempCDIP')
+    data = {'tempSmartfin': temps[0], 'tempCDIP': temps[1]}
+    return JsonResponse(data)
 
 
 # @api_view(['GET'])

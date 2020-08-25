@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
+import { RideContext } from '../contexts/RideContext'
 
 function RideInput() {
    
     const [rideId, setRideId] = useState('')
-    const [data, setData] = useState('')
+    const { rideData, dispatch } = useContext(RideContext)
     
     // function getCookie(name) {
     //     var cookieValue = null;
@@ -25,12 +26,10 @@ function RideInput() {
 
     function handleChange(e) {
         setRideId(e.target.value)
-        console.log(rideId)
     }
 
     function handleSubmit(e) {
         e.preventDefault()
-        console.log('submitted: ', rideId)
 
         if (rideId.length < 5) {
             console.log('please enter a valid ride id')
@@ -39,11 +38,11 @@ function RideInput() {
 
         let url = `http://127.0.0.1:8000/ride/ride-create/${rideId}/`
 
+        // fetch data of ride inputted
         fetch(url)
         .then(response => response.json())
         .then(data => {
-            console.log(typeof(data))
-            setData(JSON.stringify(data))
+            processData(data)
         })
         .catch(function(error){
             console.log('ERROR:', error)
@@ -52,6 +51,33 @@ function RideInput() {
         setRideId('')
     } 
 
+
+    function processData(data) {
+
+        // set ride data
+        dispatch({
+            type: 'SET_RIDE_DATA',
+            payload: {
+                rideId: data['rideId'],
+                startTime: data['startTime'],
+                endTime: data['endTime'],
+                heightSmartfin: data['heightSmartfin'],
+                heightList: JSON.parse(data['heightList']),
+                heightSampleRate: data['heightSampleRate'],
+                tempSmartfin: data['tempSmartfin'],
+                tempList: JSON.parse(data['tempList']),
+                tempSampleRate: data['tempSampleRate'],
+                buoyCDIP: data['buoyCDIP'],
+                heightCDIP: data['heightCDIP'],
+                tempCDIP: data['tempCDIP'],
+                latitude: data['latitude'],
+                longitude: data['longitude'],
+            }
+        })
+
+        // process ocean and motion data
+    }
+
     
     return (
         <div>
@@ -59,8 +85,6 @@ function RideInput() {
                 <input type="text" onChange={e => handleChange(e)} value={rideId} />
                 <input type="submit" value="Fetch Data" />
             </form>
-
-            <div>{data}</div>
         </div>
     )
 }

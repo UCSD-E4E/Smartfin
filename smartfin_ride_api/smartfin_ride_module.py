@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup
 import json
 import sys
 
+from double_integral_bandpass import double_integral_bandpass_filter
+
 
 # 14743 - Motion Control July 10th
 # 14750 - Magnetometer Control July 11th
@@ -93,9 +95,6 @@ class RideModule:
             # convert time into seconds
             mdf['Time'] = [time / 1000 for time in mdf['Time']]
 
-        mdf['Ride id'] = ride_id
-        odf['Ride id'] = ride_id
-
         # get timeframe
         start_time, end_time = self.get_timeframe(mdf)
         print(f'calculated start_time: {start_time}')
@@ -108,8 +107,11 @@ class RideModule:
         print(f'retrieved CDIP mean height for ride: {mean_CDIP}')
         print(f'retrieved CDIP mean temp for ride: {temp_CDIP}')
 
-        mdf_dict = mdf.to_dict()
+        rideHeights = mdf.to_dict()
         odf_dict = odf.to_dict()
+
+        height_smartfin, height_list, height_sample_rate = self.calculate_ride_height(mdf)
+        temp_smartfin, temp_list, temp_sample_rate = self.calculate_ride_temp(odf)
 
         print('uploading ride data to database...')
 
@@ -118,13 +120,17 @@ class RideModule:
             'rideId': ride_id, 
             'startTime': start_time,
             'endTime': end_time,
+            'heightSmartfin': height_smartfin,
+            'heightList': height_list, 
+            'heightSampleRate': height_sample_rate,
+            'tempSmartfin': temp_smartfin,
+            'tempList': temp_list,
+            'tempSampleRate': temp_sample_rate,
             'buoyCDIP': nearest_CDIP, 
             'heightCDIP': mean_CDIP, 
             'tempCDIP': temp_CDIP, 
             'latitude': latitude,
             'longitude': longitude,
-            'motionData': mdf_dict,
-            'oceanData': odf_dict
         }
 
 
@@ -146,12 +152,34 @@ class RideModule:
 #         print(type(data['longitude']))
     
         return data
-       
+        
             
         
 
-
     # HELPER FUNCTIONS
+# TODO figure out hwo to implement the displamcenets
+    # these two functions are temporary and will be edited when we refine them
+    def calculate_ride_height(self, mdf): 
+        accs, times, chunk_len = self.chunk_data(mdf['IMU A2'], mdf['Time'])
+
+        dib = double_integral_bandpass_filter()
+        integral, displacements = dib.get_displacement_data(accs, times)
+        print(f'calculated smartfin significant wave height: {integral}')
+        print(f'height reading sample rate: {chunk_len}')
+        return integral, displacements, chunk_len
+    
+
+    def calculate_ride_temp(self, odf):
+        temps = odf['Calibrated Temperature 1']
+        temp = temps.mean()
+        temps = list(temps)
+        print(f'calculated smartfin ride temp: {temp}')
+        tempSampleRate = (int(odf.iloc[1]['Time']) - int(odf.iloc[0]['Time'])) / 1000
+        print(f'temperature reading sample rate: {tempSampleRate}')
+
+        return temp, temps, tempSampleRate
+
+
 
     # def post_motion_data(self, df, model, ride_id):
 
@@ -197,8 +225,20 @@ class RideModule:
     #         )
     #         r.save()
     #
+    # 
     #         print('finished uploading.')
 
+
+    def chunk_data(self, acc_array, time_array):
+        chunk_len = 10
+        times = []
+        accs = []
+            
+        for i in range(int(len(acc_array) / chunk_len)):
+            accs.append(acc_array[i*chunk_len:(i + 1)*chunk_len])
+            times.append(time_array[i*chunk_len:(i + 1)*chunk_len])
+        
+        return accs, times, chunk_len
     
     # Find nearest value in ncTime array to inputted UNIX Timestamp
     def find_nearest(self, array, value):
@@ -405,8 +445,6 @@ class RideModule:
             print('no station found error')
             
         return stn
-
-    
     
 
     def get_active_buoys(self):
