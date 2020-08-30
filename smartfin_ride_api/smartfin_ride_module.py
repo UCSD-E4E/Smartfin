@@ -107,17 +107,19 @@ class RideModule:
         print(f'retrieved CDIP mean height for ride: {mean_CDIP}')
         print(f'retrieved CDIP mean temp for ride: {temp_CDIP}')
 
-        rideHeights = mdf.to_dict()
-        odf_dict = odf.to_dict()
-
         height_smartfin, height_list, height_sample_rate = self.calculate_ride_height(mdf)
         temp_smartfin, temp_list, temp_sample_rate = self.calculate_ride_temp(odf)
 
         print('uploading ride data to database...')
 
+        loc1, loc2, loc3 = self.get_nearest_city(latitude, longitude)
+
         # format data into dict for ride model
         data = {
             'rideId': ride_id, 
+            'loc1': loc1,
+            'loc2': loc2,
+            'loc3': loc3,
             'startTime': start_time,
             'endTime': end_time,
             'heightSmartfin': height_smartfin,
@@ -180,6 +182,35 @@ class RideModule:
         return temp, temps, tempSampleRate
 
 
+    def get_nearest_city(self, latitude, longitude):
+        key = "AIzaSyCV3zZ2YhNOsf9DN8CvSiH1NBJC3XdMYs4"
+        url = f'https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&sensor=true&key={key}'
+        response = requests.get(url).json()
+        loc1 = (response['results'][0]['address_components'][2]['long_name'])
+        loc2 = (response['results'][0]['address_components'][3]['long_name'])
+        loc3 = (response['results'][0]['address_components'][4]['long_name'])
+        
+        return loc1, loc2, loc3
+
+
+
+    # def get_nearest_city(self, latitude, longitude):
+    #     key = "AIzaSyCV3zZ2YhNOsf9DN8CvSiH1NBJC3XdMYs4"
+    #     url = f'https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&sensor=true&key={key}'
+    #     fetch(url)
+    #         .then(response => response.json())
+    #         .then(data => {
+    #             try {
+    #                 console.log(data['results'][0]['address_components'])
+    #                 setRideLocation({
+    #                     city: data['results'][0]['address_components'][2]['long_name'], 
+    #                     state: data['results'][0]['address_components'][4]['short_name']
+    #                 })
+    #             } catch {
+    #                 console.log('no')
+    #             }
+                    
+    #         })
 
     # def post_motion_data(self, df, model, ride_id):
 
@@ -310,8 +341,8 @@ class RideModule:
         # get the times of the first and last reading
         df = df.reset_index()
         df = df.set_index('UTC')
-        start_time = pd.to_datetime(df.index[0]).strftime('%d/%m/%Y %H:%M:%S')
-        end_time = pd.to_datetime(df.index[-1]).strftime('%d/%m/%Y %H:%M:%S')
+        start_time = pd.to_datetime(df.index[0]).strftime('%Y-%m-%dT%H:%M:%S')
+        end_time = pd.to_datetime(df.index[-1]).strftime('%Y-%m-%dT%H:%M:%S')
         return start_time, end_time
     
 
@@ -321,7 +352,7 @@ class RideModule:
     def CDIP_web_scrape(self, start_time, end_time, latitude, longitude):
                 
         # get nearest station
-        station = '201'#self.get_nearest_station(latitude, longitude)
+        station = self.get_nearest_station(latitude, longitude)
         
         data_url = f'http://thredds.cdip.ucsd.edu/thredds/dodsC/cdip/archive/{station}p1/{station}p1_historic.nc'
         print(f'retriving CDIP wave heights from: {data_url}')
@@ -340,11 +371,11 @@ class RideModule:
         Hs = nc.variables['waveHs'][:]
         
         # find the 30 minute chunks that correspond with smartfin ride timeframe
-        unixstart = self.getUnixTimestamp(start_time,"%d/%m/%Y %H:%M:%S")
+        unixstart = self.getUnixTimestamp(start_time,"%Y-%m-%dT%H:%M:%S")
         nearest_date = self.find_nearest(waveTime, unixstart)  # Find the closest unix timestamp
         wave_start_index = np.where(waveTime==nearest_date)[0][0]  # Grab the index number of found date
 
-        unixend = self.getUnixTimestamp(end_time,"%d/%m/%Y %H:%M:%S")
+        unixend = self.getUnixTimestamp(end_time,"%Y-%m-%dT%H:%M:%S")
         future_date = self.find_nearest(waveTime, unixend)  # Find the closest unix timestamp
         wave_end_index = np.where(waveTime==future_date)[0][0]  # Grab the index number of found date 
         
@@ -367,11 +398,11 @@ class RideModule:
         Ts = nc.variables['sstSeaSurfaceTemperature'][:]
         
         # find the 30 minute chunks that correspond with smartfin ride timeframe
-        unixstart = self.getUnixTimestamp(start_time,"%d/%m/%Y %H:%M:%S")
+        unixstart = self.getUnixTimestamp(start_time,"%Y-%m-%dT%H:%M:%S")
         nearest_date = self.find_nearest(sstTime, unixstart)  # Find the closest unix timestamp
         temp_start_index = np.where(sstTime==nearest_date)[0][0]  # Grab the index number of found date
 
-        unixend = self.getUnixTimestamp(end_time,"%d/%m/%Y %H:%M:%S")
+        unixend = self.getUnixTimestamp(end_time,"%Y-%m-%dT%H:%M:%S")
         future_date = self.find_nearest(sstTime, unixend)  # Find the closest unix timestamp
         temp_end_index = np.where(sstTime==future_date)[0][0]  # Grab the index number of found date 
         
@@ -455,7 +486,7 @@ class RideModule:
         html_content = requests.get(url).text
 
         # Parse the html content
-        soup = BeautifulSoup(html_content, "lxml")
+        soup = BeautifulSoup(html_content, "html")
         table = soup.find("table")
         table_data = table.tbody.find_all("tr")  # contains 2 rows
         stns = []

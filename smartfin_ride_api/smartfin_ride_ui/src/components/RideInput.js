@@ -4,7 +4,7 @@ import { RideContext } from '../contexts/RideContext'
 function RideInput() {
    
     const [rideId, setRideId] = useState('')
-    const { rideData, dispatch } = useContext(RideContext)
+    const { dispatch } = useContext(RideContext)
     
     // function getCookie(name) {
     //     var cookieValue = null;
@@ -40,13 +40,13 @@ function RideInput() {
 
         // fetch data of ride inputted
         fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            processData(data)
-        })
-        .catch(function(error){
-            console.log('ERROR:', error)
-        })
+            .then(response => response.json())
+            .then(data => {
+                processData(data)
+            })
+            .catch(function(error){
+                console.log('ERROR:', error)
+            })
 
         setRideId('')
     } 
@@ -59,6 +59,8 @@ function RideInput() {
             type: 'SET_RIDE_DATA',
             payload: {
                 rideId: data['rideId'],
+                loc1: data['loc1'],
+                loc3: data['loc3'],
                 startTime: data['startTime'],
                 endTime: data['endTime'],
                 heightSmartfin: data['heightSmartfin'],
@@ -80,10 +82,10 @@ function RideInput() {
 
     
     return (
-        <div>
+        <div className="search-wrapper">
             <form onSubmit={e => handleSubmit(e)}>
                 <input type="text" onChange={e => handleChange(e)} value={rideId} />
-                <input type="submit" value="Fetch Data" />
+                <input type="submit" value="Fetch Ride" />
             </form>
         </div>
     )

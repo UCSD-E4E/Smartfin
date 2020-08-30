@@ -4,6 +4,8 @@ import RideReducer from "../reducers/RideReducer";
 
 const RideData = {
     rideId: '',
+    loc1: '',
+    loc3: '',
     startTime: '',
     endTime: '',
     heightSmartfin: 0.0,

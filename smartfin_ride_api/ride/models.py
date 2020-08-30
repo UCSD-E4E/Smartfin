@@ -4,6 +4,9 @@ from django.db import models
 class RideData(models.Model):
 
     rideId = models.CharField(max_length=5, primary_key=True) 
+    loc1 = models.CharField(max_length=50, blank=True, null=True)
+    loc2 = models.CharField(max_length=50, blank=True, null=True)
+    loc3 = models.CharField(max_length=50, blank=True, null=True)
     startTime = models.CharField(max_length=20, blank=True, null=True)
     endTime = models.CharField(max_length=20, blank=True, null=True)
     heightSmartfin = models.FloatField(blank=True, null=True)
@@ -20,6 +23,20 @@ class RideData(models.Model):
 
     def __str__(self):
         return 'ride'
+
+    def getHeights(self):
+        return {
+            'heightSmartfin': self.heightSmartfin,
+            'heightCDIP': self.heightCDIP,
+            'startTime': self.startTime
+        }
+
+    def getTemps(self):
+        return {
+            'tempSmartfin': self.tempSmartfin,
+            'tempCDIP': self.tempCDIP,
+            'startTime': self.startTime
+        }
 
 
 

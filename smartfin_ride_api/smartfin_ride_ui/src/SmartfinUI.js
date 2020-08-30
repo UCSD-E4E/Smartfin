@@ -1,33 +1,58 @@
 
 import React, { useContext, useState, useEffect } from 'react'
-import RideContextProvider, { RideContext } from './contexts/RideContext'
+import { RideContext } from './contexts/RideContext'
 import RideInput from './components/RideInput'
-import SmartGraph from './components/SmartGraph'
+import SmartGraph from './components/SmartGraph' 
+
 
 function SmartfinUI() {
 
-    const { dispatch, rideData } = useContext(RideContext)
-    const { latitude, longitude, startTime, endTime } = rideData
+    const { rideData } = useContext(RideContext)
+    const { rideId, loc1, loc3, latitude, longitude, startTime, endTime } = rideData
 
     const [duration, setDuration] = useState('')
-    const [date, setDate] = useState('')
-    const [time, setTime] = useState('')
+    const [rideTime, setRideTime] = useState('')
+    const [rideLocation, setRideLocation] = useState({
+        city: '',
+        state: ''
+    })
     
 // TODO: fix duration by only calculating the actual time different and remove the date since Date() doesnt part days over 28 i think
 
     // calculate ride duration
     useEffect(() => {
-        setDate(convertToDate(startTime))
-        setTime(convertToTime(startTime))
+        setRideTime(convertToTime(startTime))
         setDuration(calculateRideDuration(startTime, endTime))
-    }, [startTime])
+    }, [startTime, endTime])
 
+    // useEffect(() => {
+    //     findCity(latitude, longitude)
+    // }, [rideData])
+
+    // function findCity(latitude, longitude) {
+    //     let key = "AIzaSyCV3zZ2YhNOsf9DN8CvSiH1NBJC3XdMYs4"
+    //     let url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&sensor=true&key=${key}`
+    //     console.log(url)
+    //     fetch(url)
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             try {
+    //                 console.log(data['results'][0]['address_components'])
+    //                 setRideLocation({
+    //                     city: data['results'][0]['address_components'][2]['long_name'], 
+    //                     state: data['results'][0]['address_components'][4]['short_name']
+    //                 })
+    //             } catch {
+    //                 console.log('no')
+    //             }
+                    
+    //         })
+    // }
 
     // calculate
     function calculateRideDuration(startTime, endTime) {
-
-        let [shr, smin, ssec] = startTime.substring(10, 19).split(':')
-        let [ehr, emin, esec] = endTime.substring(10, 19).split(':')
+        let [shr, smin, ssec] = startTime.substring(11, 19).split(':')
+        let [ehr, emin, esec] = endTime.substring(11, 19).split(':')
 
         shr = parseInt(shr) * 60
         ehr = parseInt(ehr) * 60
@@ -48,83 +73,60 @@ function SmartfinUI() {
 
 
     function convertToTime(time) {
-        let hourStr = time.substring(11,13)
+        time = (new Date(time)).toString()
+        let hourStr = time.substring(16,18)
         let hourInt = parseInt(hourStr)
         let half = 'am'
         if(hourInt > 12) {
-            hourInt -= 12
+             hourInt -= 12
             half = 'pm'
         }
         hourStr = hourInt.toString()
-        return hourStr + time.substring(13, 16) + half
+        // hourStr = ("0" + hourStr).slice(-2);
+        return time.substring(0,16) + hourStr + time.substring(18,22) + half + ' (PST)'
     }
 
-
-    function convertToDate(time) {
-        let day = time.substring(0,2)
-        let month = time.substring(3,5)
-        let year = time.substring(6,10)
-
-        switch(month) {
-            case '01': month = 'January'
-                break
-            case '02': month = 'February'
-                break
-            case '03': month = 'March'
-                break
-            case '04': month = 'April'
-                break
-            case '05': month = 'May'
-                break
-            case '06': month = 'June'
-                break
-            case '07': month = 'July'
-                break
-            case '08': month = 'August'
-                break
-            case '09': month = 'September'
-                break
-            case '10': month = 'October'
-                break
-            case '11': month = 'November'
-                break
-            case '12': month = 'December'
-                break
-            default: month = 'nan'
-        }
-
-        return month +' '+ day +'/'+ year
-    }
    
     return (
-        <div>
-            {rideData['rideId'] === '' ?
-            
-                <div className="ride-input-wrapper">
-                    <RideInput className="ride-input"/>
-                </div> 
+        <div className="smartfin-ui">
+            <div className="app-wrapper">
+                <div className="app-title-wrapper">
+                    <h1>Smartfin Ride API</h1>
+                </div>
+                {rideData['rideId'] === '' ?
                 
-                :
-
-                <div className="ui-wrapper wrapper">
-                    <div className="header-wrapper wrapper layout">
-                        header
+                    <div className="ride-input-wrapper">
                         <RideInput className="ride-input"/>
-                    </div>
-                    <div className="body=wrapper wrapper layout">
-                        body
+                    </div> 
+                    
+                    :
+
+                    <div className="ui-wrapper wrapper">
+                        <div className="header-wrapper wrapper layout">
+                            
+                            <div className="title-wrapper">
+                                <label className="ride-id-wrapper title-txt thin-txt">Ride #{rideId}</label>
+                                <h2 className="location-wrapper title-txt">{loc1}, {loc3}</h2>
+                            </div>
+                            <div className="input-wrapper">
+                                <RideInput className="ride-input"/>
+                            </div>
+                        </div>
                         <SmartGraph />
-                        {JSON.stringify(rideData)}
-                    </div>
-                    <div className="footer-wrapper wrapper layout">
-                        <p>latitude: {latitude}</p>
-                        <p>longitude: {longitude}</p>
-                        <p>ride date: {date+' @ '+time}</p>
-                        <p>ride duration: {duration} mins</p>
-                    </div>
-                </div>  
-                
-            }      
+                        <div className="footer-wrapper wrapper layout">
+                            <div className="location-wrapper">
+                                <p>coordinates: ({latitude}, {longitude})</p>
+                            </div>
+                            <div className="ride-date-wrapper">
+                                <p>ride date: {rideTime}</p>
+                            </div>
+                            <div className="ride-duration-wrapper">
+                                <p>ride duration: {duration} mins</p>
+                            </div>
+                        </div>
+                    </div>  
+                }     
+            </div>
         </div>
     )
 }

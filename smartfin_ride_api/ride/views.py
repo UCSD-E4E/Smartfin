@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
+from django.db.models import Q
+from rest_framework import serializers
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -9,6 +11,7 @@ import sys
 sys.path.append('../')
 from smartfin_ride_module import RideModule
 from .models import RideData #, OceanData, MotionData
+import json
 
 
 # Create your views here.
@@ -72,17 +75,42 @@ def rideCreate(request, rideId):
 
 
 @api_view(['GET']) 
-def heightList(request):
-    heights = RideData.objects.values_list('heightSmartfin', 'heightCDIP')
-    data = {'heightSmartfin': heights[0], 'heightCDIP': heights[1]}
+def heightList(request, location):
+    if (location == 'all'):
+        rd = RideData.objects.all()
+    else:
+        loc1, loc3 = location.split(':')
+        # here | is being used as set union not bitwise OR
+        rd = RideData.objects.filter(Q(loc1=loc1) | Q(loc2=loc1) | Q(loc3=loc1) | Q(loc1=loc3) | Q(loc2=loc3) | Q(loc3=loc3) )
+
+    r = rd.values_list('rideId', flat=True).order_by('startTime')
+    s = rd.values_list('heightSmartfin', flat=True).order_by('startTime')
+    c = rd.values_list('heightCDIP', flat=True).order_by('startTime')
+    t = rd.values_list('startTime', flat=True).order_by('startTime')
+
+    data = {'rideId': list(r), 'heightSmartfin': list(s), 'heightCDIP': list(c), 'startTime': list(t)}
     return JsonResponse(data)
 
 
 @api_view(['GET'])
-def tempList(request):
-    temps = RideData.objects.values_list('tempSmartfin', 'tempCDIP')
-    data = {'tempSmartfin': temps[0], 'tempCDIP': temps[1]}
+def tempList(request, location):
+    if (location == 'all'):
+        rd = RideData.objects.all()
+    else:
+        loc1, loc3 = location.split(':')
+        # here | is being used as set union not bitwise OR
+        rd = RideData.objects.filter(Q(loc1=loc1) | Q(loc2=loc1) | Q(loc3=loc1) | Q(loc1=loc3) | Q(loc2=loc3) | Q(loc3=loc3) )
+
+    r = rd.values_list('rideId', flat=True).order_by('startTime')
+    s = rd.values_list('tempSmartfin', flat=True).order_by('startTime')
+    c = rd.values_list('tempCDIP', flat=True).order_by('startTime')
+    t = rd.values_list('startTime', flat=True).order_by('startTime')
+
+    data = {'rideId': list(r), 'tempSmartfin': list(s), 'tempCDIP': list(c), 'startTime': list(t)}
     return JsonResponse(data)
+
+
+    
 
 
 # @api_view(['GET'])
