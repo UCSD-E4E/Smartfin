@@ -2,22 +2,23 @@
 import React, { useContext, useState, useEffect } from 'react'
 import { RideContext } from './contexts/RideContext'
 import RideInput from './components/RideInput'
-import SmartGraph from './components/SmartGraph' 
+import WidgetArea from './components/WidgetArea'
+
+import { Tabs, Tab } from '@material-ui/core';
+
 
 
 function SmartfinUI() {
 
-    const { rideData } = useContext(RideContext)
+    const { rideData, dispatch } = useContext(RideContext)
     const { rideId, loc1, loc3, latitude, longitude, startTime, endTime } = rideData
 
     const [duration, setDuration] = useState('')
     const [rideTime, setRideTime] = useState('')
-    const [rideLocation, setRideLocation] = useState({
-        city: '',
-        state: ''
-    })
-    
+    const [activeTab, setActiveTab] = useState(0)
+   
 // TODO: fix duration by only calculating the actual time different and remove the date since Date() doesnt part days over 28 i think
+
 
     // calculate ride duration
     useEffect(() => {
@@ -25,29 +26,6 @@ function SmartfinUI() {
         setDuration(calculateRideDuration(startTime, endTime))
     }, [startTime, endTime])
 
-    // useEffect(() => {
-    //     findCity(latitude, longitude)
-    // }, [rideData])
-
-    // function findCity(latitude, longitude) {
-    //     let key = "AIzaSyCV3zZ2YhNOsf9DN8CvSiH1NBJC3XdMYs4"
-    //     let url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&sensor=true&key=${key}`
-    //     console.log(url)
-    //     fetch(url)
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             try {
-    //                 console.log(data['results'][0]['address_components'])
-    //                 setRideLocation({
-    //                     city: data['results'][0]['address_components'][2]['long_name'], 
-    //                     state: data['results'][0]['address_components'][4]['short_name']
-    //                 })
-    //             } catch {
-    //                 console.log('no')
-    //             }
-                    
-    //         })
-    // }
 
     // calculate
     function calculateRideDuration(startTime, endTime) {
@@ -86,6 +64,11 @@ function SmartfinUI() {
         return time.substring(0,16) + hourStr + time.substring(18,22) + half + ' (PST)'
     }
 
+
+    const handleChange = (event, newValue) => {
+        setActiveTab(newValue)
+    }
+
    
     return (
         <div className="smartfin-ui">
@@ -96,7 +79,7 @@ function SmartfinUI() {
                 {rideData['rideId'] === '' ?
                 
                     <div className="ride-input-wrapper">
-                        <RideInput className="ride-input"/>
+                        <RideInput className="ride-input" dispatch={dispatch}/>
                     </div> 
                     
                     :
@@ -109,10 +92,24 @@ function SmartfinUI() {
                                 <h2 className="location-wrapper title-txt">{loc1}, {loc3}</h2>
                             </div>
                             <div className="input-wrapper">
-                                <RideInput className="ride-input"/>
+                                <RideInput className="ride-input" dispatch={dispatch}/>
                             </div>
                         </div>
-                        <SmartGraph />
+                        <div className="body-wrapper wrapper layout">
+                            <div className="body-header-wrapper layout">
+                                <Tabs
+                                    value={activeTab}
+                                    textColor="inherit"
+                                    onChange={handleChange}
+                                    aria-label="graph-selector"
+                                    orientation="vertical"
+                                >
+                                    <Tab label="Heights" />
+                                    <Tab label="Temps" />
+                                </Tabs>
+                            </div>
+                            <WidgetArea activeTab={activeTab} setActiveTab={setActiveTab}/>
+                        </div>
                         <div className="footer-wrapper wrapper layout">
                             <div className="location-wrapper">
                                 <p>coordinates: ({latitude}, {longitude})</p>

@@ -44,6 +44,12 @@ code {
   font-family: "Montserrat";
 }
 
+.whitespace {
+  color: white;
+  background-color: white;
+  height: 20px;
+}
+
 .wrapper {
 
 }
@@ -84,9 +90,12 @@ code {
 }
 
 
+/* SMARTGRAPH STYLING */
 .body-wrapper {
-  /* background-color: #001319; */
+  display: flex;
+  flex-direction: row;
 }
+
 
 .footer-wrapper {
   background-color: #001319;
@@ -94,13 +103,6 @@ code {
   color: #fff;
   padding-left: 50px;
   box-shadow: 0 0 5px 0px #222;
-}
-
-
-/* SMARTGRAPH STYLING */
-.body-wrapper {
-  display: flex;
-  flex-direction: row;
 }
 
 .body-header-wrapper {
@@ -145,13 +147,22 @@ code {
   box-shadow: 0 0 5px 0px #777;
 }
 
-.chart-heading {
-  background-color: #001319;
+.widget-heading {
+  display: flex;
+  justify-content: space-between;
+  background-color: #05191f;
   padding: 8px;
+  height: 20px;
   color: #fff;
   font-size: smaller;
 }
 
+
+.widget-body {
+  background: #fff;
+}
+
+ 
 
 .chart-info-wrapper {
   display: flex;
@@ -174,6 +185,10 @@ code {
   background-color: teal;
 }
 
-
-
- 
+.pop-up-wrapper {
+  z-index: 1;
+  position: absolute;
+  background: rgba(200, 200, 200, .8);
+  width: 100%;
+  height: 100%;
+}
