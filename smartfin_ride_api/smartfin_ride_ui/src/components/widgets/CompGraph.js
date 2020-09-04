@@ -2,23 +2,18 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import CanvasJSReact from '../../assets/canvasjs.react';
 import WithFetchAll from '../WithFetchAll';
+import useFetchAll from '../../hooks/useFetchAll';
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
-function CompGraph({ fetchAll, showRidePopup, onLocation, activeTab, loc1, loc3 }) {
+function CompGraph({ showRidePopup, activeTab, loc1, loc3 }) {
     
     const [chartData, setChartData] = useState({})
+    const [onLocation, setOnLocation] = useFetchAll(loc1, loc3, activeTab, chart)
 
     // independent of rideData
     const chartWrapper = useRef(0)
 
-    useEffect(() => {
-        fetchAll(chart, onLocation, loc1, loc3, activeTab)
-    }, [onLocation])
-
-    useEffect(() => {
-        fetchAll(chart, false, loc1, loc3, activeTab)
-    }, [activeTab])
-
+    // TODO: figure out how to update all rides graphs when a new ride is added
 
     function showHeightComparisonGraph(dataObj) {
         let  {rideId, heightSmartfin, heightCDIP, startTime} = dataObj
@@ -26,7 +21,7 @@ function CompGraph({ fetchAll, showRidePopup, onLocation, activeTab, loc1, loc3 
         let dataCDIP = buildCompareChartData(rideId, heightCDIP, startTime)
         return {
             labels: {
-                extras: (<button onClick={() => fetchAll(chart, !onLocation, loc1, loc3, activeTab)}>loc</button>),
+                extras: (<button onClick={() => setOnLocation(!onLocation)}>loc</button>),
                 title: 'CDIP/Smartfin Height Comparison', 
                 x: 'time (UNIX Timestamp)',
                 y: 'wave height (m)',
@@ -59,7 +54,7 @@ function CompGraph({ fetchAll, showRidePopup, onLocation, activeTab, loc1, loc3 
         return {
             chartType: 'c',
             labels: {
-                extras: (<button onClick={() => fetchAll(chart, !onLocation, loc1, loc3, activeTab)}>loc</button>),
+                extras: (<button onClick={() => setOnLocation(!onLocation)}>loc</button>),
                 title: 'CDIP/Smartfin Surface Temp Comparison', 
                 x: 'time (UNIX Timestamp)',
                 y: 'ocean surface temp (C)',

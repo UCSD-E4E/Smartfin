@@ -39,6 +39,14 @@ class RideData(models.Model):
         }
 
 
+class Buoys(models.Model):
+
+    buoyNum = models.CharField(max_length=3, primary_key=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+
+    def __str__(self):
+        return 'buoy'
 
 # class OceanData(models.Model):
 #     time = models.FloatField(primary_key=True, default=0)

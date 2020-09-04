@@ -60,7 +60,7 @@ class RideModule:
 
         
     # MAIN RIDE FUNCTION
-    def get_ride_data(self, ride_id, convert_imu=True):
+    def get_ride_data(self, ride_id, buoys, convert_imu=True):
         """
         adds a ride dataframe to this dictionary 
         
@@ -102,7 +102,7 @@ class RideModule:
         
     
         # get nearest CDIP buoy
-        mean_CDIP, means_CDIP, temp_CDIP, temps_CDIP, nearest_CDIP = self.CDIP_web_scrape(start_time, end_time, latitude, longitude)
+        mean_CDIP, means_CDIP, temp_CDIP, temps_CDIP, nearest_CDIP = self.CDIP_web_scrape(start_time, end_time, latitude, longitude, buoys)
         print(f'retrieved nearest CDIP buoy: {nearest_CDIP}')
         print(f'retrieved CDIP mean height for ride: {mean_CDIP}')
         print(f'retrieved CDIP mean temp for ride: {temp_CDIP}')
@@ -134,24 +134,6 @@ class RideModule:
             'latitude': latitude,
             'longitude': longitude,
         }
-
-
-
-        # mdf = mdf.head(200)
-        # odf = odf.head(200)
-
-        # self.post_motion_data(mdf, motion_data, ride_id)
-        # self.post_ocean_data(odf, ocean_data, ride_id)
-
-        # data = json.dumps(data)
-#         print(type(data['ride_id']))
-#         print(type(data['start_time']))
-#         print(type(data['end_time']))
-#         print(type(data['CDIP_buoy']))
-#         print(type(data['CDIP_height']))
-#         print(type(data['CDIP_temp']))
-#         print(type(data['latitude']))
-#         print(type(data['longitude']))
     
         return data
         
@@ -191,73 +173,6 @@ class RideModule:
         loc3 = (response['results'][0]['address_components'][4]['long_name'])
         
         return loc1, loc2, loc3
-
-
-
-    # def get_nearest_city(self, latitude, longitude):
-    #     key = "AIzaSyCV3zZ2YhNOsf9DN8CvSiH1NBJC3XdMYs4"
-    #     url = f'https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&sensor=true&key={key}'
-    #     fetch(url)
-    #         .then(response => response.json())
-    #         .then(data => {
-    #             try {
-    #                 console.log(data['results'][0]['address_components'])
-    #                 setRideLocation({
-    #                     city: data['results'][0]['address_components'][2]['long_name'], 
-    #                     state: data['results'][0]['address_components'][4]['short_name']
-    #                 })
-    #             } catch {
-    #                 console.log('no')
-    #             }
-                    
-    #         })
-
-    # def post_motion_data(self, df, model, ride_id):
-
-    #     print('uploading motion data to db...')
-
-    #     r = model
-
-    #     for row in df.iterrows():
-    #         data = row[1].to_dict()
-    #         r = model(
-    #             time=data['Time'],
-    #             imuA1=data['IMU A1'],
-    #             imuA2=data['IMU A1'],
-    #             imuA3=data['IMU A1'],
-    #             imuG1=data['IMU A1'],
-    #             imuG2=data['IMU A1'],
-    #             imuG3=data['IMU A1'],
-    #             imuM1=data['IMU A1'],
-    #             imuM2=data['IMU A1'],
-    #             imuM3=data['IMU A1'],
-    #             rideId=ride_id,
-    #         )
-    #         r.save()
-
-
-
-
-    # def post_ocean_data(self, df, model, ride_id):
-
-    #     print('uploading ocean data to db...')
-
-    #     for row in df.iterrows():
-    #         data = row[1].to_dict()
-    #         r = model(
-    #             time=data['Time'],
-    #             temp1=data['Temperature 1'],
-    #             calibratedTemp1=data['Calibrated Temperature 1'],
-    #             temp1Stable=data['Temperature 1 Stable'],
-    #             temp2=data['Temperature 2'],
-    #             calibratedTemp2=data['Calibrated Temperature 2'],
-    #             temp2Stable=data['Temperature 2 Stable'],
-    #             rideId=ride_id,
-    #         )
-    #         r.save()
-    #
-    # 
-    #         print('finished uploading.')
 
 
     def chunk_data(self, acc_array, time_array):
@@ -346,22 +261,18 @@ class RideModule:
         return start_time, end_time
     
 
-    
         
         
-    def CDIP_web_scrape(self, start_time, end_time, latitude, longitude):
+    def CDIP_web_scrape(self, start_time, end_time, latitude, longitude, buoys):
                 
         # get nearest station
-        station = self.get_nearest_station(latitude, longitude)
+        station = self.get_nearest_station(latitude, longitude, buoys)
         
         data_url = f'http://thredds.cdip.ucsd.edu/thredds/dodsC/cdip/archive/{station}p1/{station}p1_historic.nc'
         print(f'retriving CDIP wave heights from: {data_url}')
         
         # netCDF data object fetched from CDIP API
         nc = netCDF4.Dataset(data_url)
-
-        
-        
         
         # GET WAVE DATA
         # UNIX based time from 1991-yeardate in 30 minute increments
@@ -415,8 +326,6 @@ class RideModule:
         ride_ts = Ts[temp_start_index:temp_end_index]
         ride_ts = ride_ts.data
    
-        
-        
         # CALCULATE MEANS of each month dataset in box_data
         mean_h = ride_hs.mean()
         mean_t = ride_ts.mean()
@@ -426,19 +335,15 @@ class RideModule:
         
         return mean_h, list(ride_hs), mean_t, list(ride_ts), station
 
-    
-    
-    def get_nearest_station(self, latitude, longitude):
 
+    def get_CDIP_stations(self):
+        
         # get all active buoys with archived data
         stns = self.get_active_buoys()
-   
-        # intialize the lowest distance to be some rediculously big number
-        lowest_distance = 1000000000
-        stn = -1
+        buoys = []
         count = 0
 
-        # iterate through 0-450 (station numbers are from 28-433 with gaps in between)
+         # iterate through 0-450 (station numbers are from 28-433 with gaps in between)
         for i in stns:
             
             count += 1
@@ -458,25 +363,41 @@ class RideModule:
                 # get latitude and longitude of current station
                 nc_latitude = nc.variables['metaStationLatitude'][:]
                 nc_longitude = nc.variables['metaStationLongitude'][:]
-                
-                print('', end='\r')
-                print(f'checking for nearest buoy... {count}/{len(stns)}')
+                nc_latitude = float(nc_latitude.data)
+                nc_longitude = float(nc_longitude.data)
 
-                # if the current station distance is lower than the lowest distance so far, save it
-                curr_distance = abs(nc_latitude - latitude) + abs(nc_longitude - longitude)
-                if curr_distance < lowest_distance:
-                    lowest_distance = curr_distance
-                    stn = i
-                else: continue
+                buoys.append({'buoyNum': i, 'latitude': nc_latitude, 'longitude': nc_longitude})
 
             except OSError as err:
                 continue
+
+        return buoys
+   
+    
+    def get_nearest_station(self, latitude, longitude, buoys):
+        # intialize the lowest distance to be some rediculously big number
+        lowest_distance = 1000000000
+        stn = -1
+        count = 0
+
+        for buoy in buoys:
+
+            b_latitude = buoy['latitude']
+            b_longitude = buoy['longitude']
+
+            curr_distance = abs(b_latitude - latitude) + abs(b_longitude - longitude)
+            if curr_distance < lowest_distance:
+                lowest_distance = curr_distance
+                stn = buoy['buoyNum']
+            count += 1
+
 
         if stn == -1:
             print('no station found error')
             
         return stn
-    
+                
+
 
     def get_active_buoys(self):
         # CDIP active buoys URL
@@ -500,6 +421,125 @@ class RideModule:
         return stns
         
 
-       
 
-# %%
+    
+    # def get_nearest_station(self, latitude, longitude):
+
+    #     # get all active buoys with archived data
+    #     stns = self.get_active_buoys()
+   
+    #     # intialize the lowest distance to be some rediculously big number
+    #     lowest_distance = 1000000000
+    #     stn = -1
+    #     count = 0
+
+    #     # url = 'http://127.0.0.1:8000/ride/buoylist/'
+    #     # print(requests.get(url))
+
+    #     # iterate through 0-450 (station numbers are from 28-433 with gaps in between)
+    #     for i in stns:
+            
+    #         count += 1
+
+    #         # format i into a 3 digit string
+    #         i = str(i)
+    #         if len(i) == 1:
+    #             i = '00' + i
+    #         elif len(i) == 2:
+    #             i = '0' + i
+
+    #         # see if there is a station with the current iteration number
+    #         try:
+    #             data_url = 'http://thredds.cdip.ucsd.edu/thredds/dodsC/cdip/archive/' + i + 'p1/' + i+ 'p1_historic.nc'
+    #             nc = netCDF4.Dataset(data_url)
+ 
+    #             # get latitude and longitude of current station
+    #             nc_latitude = nc.variables['metaStationLatitude'][:]
+    #             nc_longitude = nc.variables['metaStationLongitude'][:]
+                
+    #             print('', end='\r')
+    #             print(f'checking for nearest buoy... {count}/{len(stns)}')
+
+    #             # if the current station distance is lower than the lowest distance so far, save it
+    #             curr_distance = abs(nc_latitude - latitude) + abs(nc_longitude - longitude)
+    #             if curr_distance < lowest_distance:
+    #                 lowest_distance = curr_distance
+    #                 stn = i
+    #             else: continue
+
+    #         except OSError as err:
+    #             continue
+
+    #     if stn == -1:
+    #         print('no station found error')
+            
+    #     return stn
+    
+
+
+       
+  # def get_nearest_city(self, latitude, longitude):
+    #     key = "AIzaSyCV3zZ2YhNOsf9DN8CvSiH1NBJC3XdMYs4"
+    #     url = f'https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&sensor=true&key={key}'
+    #     fetch(url)
+    #         .then(response => response.json())
+    #         .then(data => {
+    #             try {
+    #                 console.log(data['results'][0]['address_components'])
+    #                 setRideLocation({
+    #                     city: data['results'][0]['address_components'][2]['long_name'], 
+    #                     state: data['results'][0]['address_components'][4]['short_name']
+    #                 })
+    #             } catch {
+    #                 console.log('no')
+    #             }
+                    
+    #         })
+
+    # def post_motion_data(self, df, model, ride_id):
+
+    #     print('uploading motion data to db...')
+
+    #     r = model
+
+    #     for row in df.iterrows():
+    #         data = row[1].to_dict()
+    #         r = model(
+    #             time=data['Time'],
+    #             imuA1=data['IMU A1'],
+    #             imuA2=data['IMU A1'],
+    #             imuA3=data['IMU A1'],
+    #             imuG1=data['IMU A1'],
+    #             imuG2=data['IMU A1'],
+    #             imuG3=data['IMU A1'],
+    #             imuM1=data['IMU A1'],
+    #             imuM2=data['IMU A1'],
+    #             imuM3=data['IMU A1'],
+    #             rideId=ride_id,
+    #         )
+    #         r.save()
+
+
+
+
+    # def post_ocean_data(self, df, model, ride_id):
+
+    #     print('uploading ocean data to db...')
+
+    #     for row in df.iterrows():
+    #         data = row[1].to_dict()
+    #         r = model(
+    #             time=data['Time'],
+    #             temp1=data['Temperature 1'],
+    #             calibratedTemp1=data['Calibrated Temperature 1'],
+    #             temp1Stable=data['Temperature 1 Stable'],
+    #             temp2=data['Temperature 2'],
+    #             calibratedTemp2=data['Calibrated Temperature 2'],
+    #             temp2Stable=data['Temperature 2 Stable'],
+    #             rideId=ride_id,
+    #         )
+    #         r.save()
+    #
+    # 
+    #         print('finished uploading.')
+

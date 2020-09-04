@@ -46,7 +46,7 @@ function WidgetArea({ activeTab, setActiveTab }) {
                         activeTab={activeTab} 
                         loc1={loc1} 
                         loc3={loc3}
-                        showRidePop={showRidePopup} />
+                        showRidePopup={showRidePopup} />
                 </div>
             </div>    
         </div>

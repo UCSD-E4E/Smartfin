@@ -2,22 +2,16 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import CanvasJSReact from '../../assets/canvasjs.react';
 import WithFetchAll from '../WithFetchAll';
+import useFetchAll from '../../hooks/useFetchAll';
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
-function RegressionGraph({ fetchAll, showRidePopup, onLocation, activeTab, loc1, loc3 }) {
+function RegressionGraph({ showRidePopup, activeTab, loc1, loc3 }) {
     
     const [chartData, setChartData] = useState({})
+    const [onLocation, setOnLocation] = useFetchAll(loc1, loc3, activeTab, chart)
 
     // independent of rideData
     const chartWrapper = useRef(0)
-
-    useEffect(() => {
-        fetchAll(chart, onLocation, loc1, loc3, activeTab)
-    }, [onLocation])
-
-    useEffect(() => {
-        fetchAll(chart, false, loc1, loc3, activeTab)
-    }, [activeTab])
 
     
     function showHeightRegressionGraph(dataObj) {
@@ -26,7 +20,7 @@ function RegressionGraph({ fetchAll, showRidePopup, onLocation, activeTab, loc1,
         return {
             labels: {
                 title: 'Smartfin/CDIP Height Regression', 
-                extras: (<button onClick={() => fetchAll(chart, !onLocation, loc1, loc3, activeTab)}>loc</button>),
+                extras: (<button onClick={() => setOnLocation(!onLocation)}>loc</button>),
                 x: 'Heights calculated by Smartfin',
                 y: 'Heights calculated by CDIP',
             },
@@ -48,7 +42,7 @@ function RegressionGraph({ fetchAll, showRidePopup, onLocation, activeTab, loc1,
         return {
             labels: {
                 title: 'Smartfin/CDIP Temperature Regression',
-                extras: (<button onClick={() => fetchAll(chart, !onLocation, loc1, loc3, activeTab)}>loc</button>),
+                extras: (<button onClick={() => setOnLocation(!onLocation)}>loc</button>),
                 x: 'Heights calculated by Smartfin',
                 y: 'Heights calculated by CDIP',
             },
@@ -121,4 +115,4 @@ function RegressionGraph({ fetchAll, showRidePopup, onLocation, activeTab, loc1,
     )
 }
 
-export default WithFetchAll(RegressionGraph)
+export default RegressionGraph

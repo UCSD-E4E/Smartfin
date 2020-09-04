@@ -6,11 +6,11 @@ from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .serializers import RideSerializer, HeightSerializer, TempSerializer
+from .serializers import RideSerializer, HeightSerializer, TempSerializer, BuoySerializer
 import sys 
 sys.path.append('../')
 from smartfin_ride_module import RideModule
-from .models import RideData #, OceanData, MotionData
+from .models import RideData, Buoys
 import json
 
 
@@ -59,10 +59,19 @@ def rideCreate(request, rideId):
         print('found ride in database, returning data...')
 
     except:
-        
-        # fetch data from ride id
+
+         # fetch data from ride id
         rideModule = RideModule()
-        data = rideModule.get_ride_data(rideId)
+
+        buoys = Buoys.objects.values()
+
+        if len(buoys) == 0:
+            buoys = rideModule.get_CDIP_stations()
+            for buoy in buoys:
+                buoyModel = Buoys(**buoy)
+                buoyModel.save()
+    
+        data = rideModule.get_ride_data(rideId, buoys)
 
         # save ride data into RideData model
         rideModel = RideData(**data)
@@ -108,7 +117,6 @@ def tempList(request, location):
 
     data = {'rideId': list(r), 'tempSmartfin': list(s), 'tempCDIP': list(c), 'startTime': list(t)}
     return JsonResponse(data)
-
 
     
 
