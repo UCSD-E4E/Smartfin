@@ -118,7 +118,18 @@ def tempList(request, location):
     data = {'rideId': list(r), 'tempSmartfin': list(s), 'tempCDIP': list(c), 'startTime': list(t)}
     return JsonResponse(data)
 
-    
+# used to update smartfin calculated heights when new analysis method is used
+def updateHeights(request):
+    ids = RideData.objects.values_list('rideId', flat=True)
+    rm = RideModule()
+
+    for id in ids:
+        heightUpdated = rm.get_ride_height(id)
+        ride = RideData.objects.get(rideId=id)
+        ride.heightSmartfin = heightUpdated  # change field
+        ride.save() # this will update only
+
+    return JsonResponse({})
 
 
 # @api_view(['GET'])

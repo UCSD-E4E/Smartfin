@@ -29,8 +29,6 @@ function WidgetArea({ activeTab, setActiveTab }) {
     }
    
     
-// TODO: split up the chart data into having 3 keys, have the only toggle be the temperature difference
-//          put the temperature/height tabs into the tab that already existing
     return (
         <div className="body-wrapper">
             <div className="widget-body-wrapper layout">

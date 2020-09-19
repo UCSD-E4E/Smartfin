@@ -23,6 +23,7 @@ urlpatterns = [
     path('ride-create/<str:rideId>/', views.rideCreate, name='ride-create'),
     path('height-list/<str:location>/', views.heightList, name='height-list'),
     path('temp-list/<str:location>', views.tempList, name='temp-list'),
+    path('update-heights/', views.updateHeights, name='update-heights'),
     # path('motion-list/', views.motionList, name='motion-list'),
     # path('ocean-list/', views.oceanList, name='ocean-list'),
     path('ride-detail/<str:rideId>/', views.rideDetail, name='ride-detail'),

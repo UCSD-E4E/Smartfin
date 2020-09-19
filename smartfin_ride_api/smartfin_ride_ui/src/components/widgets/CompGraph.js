@@ -13,8 +13,6 @@ function CompGraph({ showRidePopup, activeTab, loc1, loc3 }) {
     // independent of rideData
     const chartWrapper = useRef(0)
 
-    // TODO: figure out how to update all rides graphs when a new ride is added
-
     function showHeightComparisonGraph(dataObj) {
         let  {rideId, heightSmartfin, heightCDIP, startTime} = dataObj
         let dataSmartfin = buildCompareChartData(rideId, heightSmartfin, startTime)

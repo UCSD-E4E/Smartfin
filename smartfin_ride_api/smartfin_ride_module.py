@@ -12,6 +12,7 @@ import time
 from bs4 import BeautifulSoup
 import json
 import sys
+import random
 
 from double_integral_bandpass import double_integral_bandpass_filter
 
@@ -60,16 +61,14 @@ class RideModule:
 
         
     # MAIN RIDE FUNCTION
-    def get_ride_data(self, ride_id, buoys, convert_imu=True):
+    def get_ride_data(self, ride_id, buoys, convert_imu=True, mdf_only=False):
         """
         adds a ride dataframe to this dictionary 
         
         """
         # get df from ride number
         # get given ride's CSV from its ride ID using function above
-        dfs = self.get_csv_from_ride_id(ride_id) 
-        odf = dfs[0]
-        mdf = dfs[1]
+        mdf, odf = self.get_csv_from_ride_id(ride_id) 
 
         latitude = mdf['Latitude'].mean() / 100000
         longitude = mdf['Longitude'].mean() / 100000
@@ -77,11 +76,9 @@ class RideModule:
         #Drop the latitude and longitude values since most of them are Nan:
         # mdf_dropped = mdf.drop(columns=['Latitude', 'Longitude'])
         mdf_dropped = mdf.drop(['Latitude', 'Longitude'], axis=1)
-        odf_dropped = odf.drop(['salinity', 'Calibrated Salinity', 'Salinity Stable', 'pH', 'Calibrated pH', 'pH Stable'], axis=1)
 
         #Drop the NAN values from the motion data:
         mdf = mdf_dropped.dropna(axis=0, how='any')
-        odf = odf_dropped.dropna(axis=0, how='any')
             
         # convert imu data 
         if(convert_imu):
@@ -94,6 +91,16 @@ class RideModule:
 
             # convert time into seconds
             mdf['Time'] = [time / 1000 for time in mdf['Time']]
+
+        
+
+        odf_dropped = odf.drop(['salinity', 'Calibrated Salinity', 'Salinity Stable', 'pH', 'Calibrated pH', 'pH Stable'], axis=1)
+        odf = odf_dropped.dropna(axis=0, how='any')
+        
+        mdf, odf = self.get_water_data(mdf, odf)
+        
+        if(mdf_only):
+            return mdf 
 
         # get timeframe
         start_time, end_time = self.get_timeframe(mdf)
@@ -141,17 +148,61 @@ class RideModule:
         
 
     # HELPER FUNCTIONS
-# TODO figure out hwo to implement the displamcenets
+    def get_ride_height(self, ride_id):
+        mdf = self.get_ride_data(ride_id, 'none', mdf_only=True)
+        filt = double_integral_bandpass_filter()
+        height_smartfin, height_list, height_sample_rate = filt.calculate_ride_height(mdf)
+        return height_smartfin
+
+
+    
     # these two functions are temporary and will be edited when we refine them
     def calculate_ride_height(self, mdf): 
-        accs, times, chunk_len = self.chunk_data(mdf['IMU A2'], mdf['Time'])
-
-        dib = double_integral_bandpass_filter()
-        integral, displacements = dib.get_displacement_data(accs, times)
-        print(f'calculated smartfin significant wave height: {integral}')
-        print(f'height reading sample rate: {chunk_len}')
-        return integral, displacements, chunk_len
+        
+        filt = double_integral_bandpass_filter()
+        height_smartfin, height_list, height_sample_rate = filt.calculate_ride_height(mdf)
     
+#         mdf = self.process_IMU(mdf)
+#         accs, times, chunk_len = self.chunk_data(mdf['IMU A2'], mdf['Time'])
+
+#         filt = double_integral_bandpass_filter()
+#         integral, displacements = filt.get_displacement_data(accs, times)
+        
+        # integral *= 1.75
+
+        print(f'calculated smartfin significant wave height: {height_smartfin}')
+        print(f'height reading sample rate: {height_sample_rate}')
+        return height_smartfin, height_list, height_sample_rate 
+    
+    
+    
+    def process_IMU(self, mdf):
+        mdf = mdf.head(2160)
+        mdf = mdf[360:2160]
+        mean = mdf['IMU A2'].mean()
+        std = mdf['IMU A2'].std()
+        Upperbound = mean+(2.1*std)
+        Lowerbound = mean-(2.1*std)
+        Up = (mean+.5)
+        Low = (mean-.5)
+        mdf.loc[mdf['IMU A2'] > Upperbound, 'IMU A2'] = float(random.uniform(Up, Low))
+        mdf.loc[mdf['IMU A2'] < Lowerbound, 'IMU A2'] = float(random.uniform(Up, Low))
+        return mdf
+    
+    
+    def chunk_data(self, acc_array, time_array):
+        chunk_len = 10
+        times = []
+        accs = []
+            
+        for i in range(int(len(acc_array) / chunk_len)):
+            accs.append(acc_array[i*chunk_len:(i + 1)*chunk_len])
+            times.append(time_array[i*chunk_len:(i + 1)*chunk_len])
+        
+        return accs, times, chunk_len
+    
+        
+        
 
     def calculate_ride_temp(self, odf):
         temps = odf['Calibrated Temperature 1']
@@ -175,16 +226,103 @@ class RideModule:
         return loc1, loc2, loc3
 
 
-    def chunk_data(self, acc_array, time_array):
-        chunk_len = 10
-        times = []
-        accs = []
-            
-        for i in range(int(len(acc_array) / chunk_len)):
-            accs.append(acc_array[i*chunk_len:(i + 1)*chunk_len])
-            times.append(time_array[i*chunk_len:(i + 1)*chunk_len])
-        
-        return accs, times, chunk_len
+    
+    # filter motion and ocean dataframes to only hold readings taken from when the surfer is in the water
+    def get_water_data(self, mdf, odf):
+
+        temps = odf['Calibrated Temperature 1']
+        threshold = temps.std() / 2
+        med = temps.median()
+
+        mdf, odf = self.remove_before_entrance(mdf, odf, threshold, med)
+        mdf, odf = self.remove_after_exit(mdf, odf, threshold, med)
+        return mdf, odf
+    
+    
+    # remove readings from ocean and motion dataframes where surfer is on land before entering the water
+    def remove_before_entrance(self, mdf, odf, threshold, med):
+
+        # get temperature series
+        temps = odf['Calibrated Temperature 1']
+        enter_index = self.get_water_entrance_index(temps, threshold, med)
+
+        # get the time where the surfer enters the water in the ocean dataframe
+        startTime = odf.iloc[enter_index]['Time']
+        startTime /= 1000
+
+        # find the index in motion dataframe that matches with start index calculated from ocean dataframe
+        startIdx = mdf.iloc[(mdf['Time']-startTime).abs().argsort()[:1]]
+        return mdf.loc[startIdx.index[0]:], odf.tail(len(odf) - enter_index)
+
+
+    # calculate the index in ocean dataframe that the surfer enters the water
+    def get_water_entrance_index(self, temps, threshold, med):
+
+        above = False
+        count = 0
+        consecutiveWithin = 0
+
+        # calculate the index at the point where the temperature readings fall within the threshold consecutively
+        for time, reading in temps.items():
+            if abs(reading - med) < threshold:
+                if above == True:
+                    above = False
+                else:
+                    consecutiveWithin += 1
+
+                # if the temperatures fall within the threshold consecutively, then we can assume the surfer is in the water
+                if consecutiveWithin > 10:
+                    return count
+
+                above = False
+
+            else:
+                above = True
+                consecutiveWithin = 0
+            count += 1 
+
+        return firstInstance
+    
+    # remove readings from ocean and motion dataframes where surfer is on land after exiting the water
+    def remove_after_exit(self, mdf, odf, threshold, med):
+
+        # get the temperature series
+        temps = odf['Calibrated Temperature 1']
+
+        # get the index where surfer exits the water
+        exit_index = self.get_water_exit_index(temps, threshold, med)
+
+        # get the time where the surfer enters the water in the ocean dataframe
+        endTime = odf.iloc[exit_index]['Time']
+        endTime /= 1000
+
+        # find the index in motion dataframe that matches with end index calculated from ocean dataframe
+        endIdx = mdf.iloc[(mdf['Time']-endTime).abs().argsort()[:1]]
+        return mdf.loc[:endIdx.index[0]], odf.head(exit_index)
+
+
+    # calculate the index in ocean dataframe that the surfer enters the water
+    def get_water_exit_index(self, temps, threshold, med):
+        above = False
+        count = 0
+
+        # calculate the index at the last point where the temperature readings transition from within to outside the threshold 
+        for time, reading in temps.items():
+            if abs(reading - med) > threshold:
+
+                # record index where temperature transition from within to outside the threshold
+                if above == False:
+                    above = True
+                    firstInstance = count
+
+                above = True
+
+            else:
+                above = False
+                firstInstance = 0
+            count += 1 
+
+        return firstInstance
     
     # Find nearest value in ncTime array to inputted UNIX Timestamp
     def find_nearest(self, array, value):
@@ -227,21 +365,20 @@ class RideModule:
         # other junk URLs can exist and break everything
         if ("media" in csv_id_longstr) & ("Calibration" not in html_contents): 
 
-            urls = [f'https://surf.smartfin.org/{csv_id_longstr}Ocean.CSV', f'https://surf.smartfin.org/{csv_id_longstr}Motion.CSV']
-            print(f'fetching ocean data from: {urls[0]}')
-            print(f'fetching motion data from: {urls[1]}')
-
-            # Go to ocean_csv_url and grab contents (theoretically, a CSV)
-            dfs = [pd.read_csv(url, parse_dates = [0]) for url in urls]
-           
-            # Reindex on timestamp if there are at least a few rows
-            dfs = [df.set_index('UTC', drop = True, append = False) for df in dfs]
-            
-            # resample data at new interval
             sample_interval = '1000ms'
-            dfs = [df.resample(sample_interval).mean() for df in dfs]
 
-            return dfs
+            mdf_url = f'https://surf.smartfin.org/{csv_id_longstr}Motion.CSV'
+            print(f'fetching motion data from: {mdf_url}')
+            mdf = pd.read_csv(mdf_url, parse_dates = [0])
+            mdf = mdf.set_index('UTC', drop = True, append = False)
+            mdf = mdf.resample(sample_interval).mean()
+            odf_url = f'https://surf.smartfin.org/{csv_id_longstr}Ocean.CSV'
+            print(f'fetching ocean data from: {odf_url}')
+            odf = pd.read_csv(odf_url, parse_dates = [0])
+            odf = odf.set_index('UTC', drop = True, append = False)
+            odf = odf.resample(sample_interval).mean()
+
+            return mdf, odf
 
         else:
             print('here')
@@ -407,7 +544,7 @@ class RideModule:
         html_content = requests.get(url).text
 
         # Parse the html content
-        soup = BeautifulSoup(html_content, "html")
+        soup = BeautifulSoup(html_content)
         table = soup.find("table")
         table_data = table.tbody.find_all("tr")  # contains 2 rows
         stns = []
