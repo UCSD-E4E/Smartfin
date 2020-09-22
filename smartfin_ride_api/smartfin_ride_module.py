@@ -14,6 +14,8 @@ import json
 import sys
 import random
 
+from io import StringIO
+
 from double_integral_bandpass import double_integral_bandpass_filter
 
 
@@ -61,7 +63,7 @@ class RideModule:
 
         
     # MAIN RIDE FUNCTION
-    def get_ride_data(self, ride_id, buoys, convert_imu=True, mdf_only=False):
+    def get_ride_data(self, ride_id, buoys, convert_imu=True):
         """
         adds a ride dataframe to this dictionary 
         
@@ -97,10 +99,7 @@ class RideModule:
         odf_dropped = odf.drop(['salinity', 'Calibrated Salinity', 'Salinity Stable', 'pH', 'Calibrated pH', 'pH Stable'], axis=1)
         odf = odf_dropped.dropna(axis=0, how='any')
         
-        mdf, odf = self.get_water_data(mdf, odf)
-        
-        if(mdf_only):
-            return mdf 
+        mdf, odf = self.get_water_data(mdf, odf) 
 
         # get timeframe
         start_time, end_time = self.get_timeframe(mdf)
@@ -140,6 +139,8 @@ class RideModule:
             'tempCDIP': temp_CDIP, 
             'latitude': latitude,
             'longitude': longitude,
+            'motionData': mdf.to_csv(),
+            'oceanData': odf.to_csv(),
         }
     
         return data
@@ -148,10 +149,14 @@ class RideModule:
         
 
     # HELPER FUNCTIONS
-    def get_ride_height(self, ride_id):
-        mdf = self.get_ride_data(ride_id, 'none', mdf_only=True)
+    def get_ride_height(self, ride_id, mdf):
+        mdf_str = StringIO(mdf)
+        mdf = pd.read_csv(mdf_str)
+
+        print('updating heights')
         filt = double_integral_bandpass_filter()
         height_smartfin, height_list, height_sample_rate = filt.calculate_ride_height(mdf)
+        print(f'updated height for ride {ride_id}: {height_smartfin} ')
         return height_smartfin
 
 
@@ -161,46 +166,10 @@ class RideModule:
         
         filt = double_integral_bandpass_filter()
         height_smartfin, height_list, height_sample_rate = filt.calculate_ride_height(mdf)
-    
-#         mdf = self.process_IMU(mdf)
-#         accs, times, chunk_len = self.chunk_data(mdf['IMU A2'], mdf['Time'])
-
-#         filt = double_integral_bandpass_filter()
-#         integral, displacements = filt.get_displacement_data(accs, times)
-        
-        # integral *= 1.75
 
         print(f'calculated smartfin significant wave height: {height_smartfin}')
         print(f'height reading sample rate: {height_sample_rate}')
         return height_smartfin, height_list, height_sample_rate 
-    
-    
-    
-    def process_IMU(self, mdf):
-        mdf = mdf.head(2160)
-        mdf = mdf[360:2160]
-        mean = mdf['IMU A2'].mean()
-        std = mdf['IMU A2'].std()
-        Upperbound = mean+(2.1*std)
-        Lowerbound = mean-(2.1*std)
-        Up = (mean+.5)
-        Low = (mean-.5)
-        mdf.loc[mdf['IMU A2'] > Upperbound, 'IMU A2'] = float(random.uniform(Up, Low))
-        mdf.loc[mdf['IMU A2'] < Lowerbound, 'IMU A2'] = float(random.uniform(Up, Low))
-        return mdf
-    
-    
-    def chunk_data(self, acc_array, time_array):
-        chunk_len = 10
-        times = []
-        accs = []
-            
-        for i in range(int(len(acc_array) / chunk_len)):
-            accs.append(acc_array[i*chunk_len:(i + 1)*chunk_len])
-            times.append(time_array[i*chunk_len:(i + 1)*chunk_len])
-        
-        return accs, times, chunk_len
-    
         
         
 
@@ -544,7 +513,7 @@ class RideModule:
         html_content = requests.get(url).text
 
         # Parse the html content
-        soup = BeautifulSoup(html_content)
+        soup = BeautifulSoup(html_content, 'html.parser')
         table = soup.find("table")
         table_data = table.tbody.find_all("tr")  # contains 2 rows
         stns = []
