@@ -73,6 +73,8 @@ def rideCreate(request, rideId):
     
         # fetch data from the ride_module
         data = rideModule.get_ride_data(rideId, buoys)
+        if data == {}:
+            return Response({})
 
         # save ride data into RideData model
         rideModel = RideData(**data)
@@ -167,6 +169,16 @@ def motionData(request, rideId='all'):
     data = rd.values_list('motionData', flat=True)
     print(data)
     return Response({'data': data[0]})
+
+
+
+@api_view(['GET'])
+def buoyList(request):
+    
+    # return list of buoys
+    data = Buoys.objects.all().values_list('buoyNum', flat=True)
+    print(data)
+    return Response(data)
 
 
 

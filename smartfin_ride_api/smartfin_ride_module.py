@@ -81,6 +81,10 @@ class RideModule:
 
         #Drop the NAN values from the motion data:
         mdf = mdf_dropped.dropna(axis=0, how='any')
+        
+        if len(mdf) == 0 or len(odf) == 0:
+            print('ERROR: Ride has no valid data, returning...')
+            return {}
             
         # convert imu data 
         if(convert_imu):
@@ -98,8 +102,9 @@ class RideModule:
 
         odf_dropped = odf.drop(['salinity', 'Calibrated Salinity', 'Salinity Stable', 'pH', 'Calibrated pH', 'pH Stable'], axis=1)
         odf = odf_dropped.dropna(axis=0, how='any')
-        
+        print('df length before water data: ', len(mdf))
         mdf, odf = self.get_water_data(mdf, odf) 
+        print('df length after water data: ', len(mdf))
 
         # get timeframe
         start_time, end_time = self.get_timeframe(mdf)
@@ -202,9 +207,15 @@ class RideModule:
         temps = odf['Calibrated Temperature 1']
         threshold = temps.std() / 2
         med = temps.median()
+#         print('med: ', med)
+#         print('threshold: ', threshold)
+#         print('temps: ', temps)
 
         mdf, odf = self.remove_before_entrance(mdf, odf, threshold, med)
+#         print('after entreance: ', len(mdf))
         mdf, odf = self.remove_after_exit(mdf, odf, threshold, med)
+#         print('aaaaaaaaaaaaaaa')
+#         print('after exit', len(mdf))
         return mdf, odf
     
     
@@ -254,20 +265,21 @@ class RideModule:
     
     # remove readings from ocean and motion dataframes where surfer is on land after exiting the water
     def remove_after_exit(self, mdf, odf, threshold, med):
-
+        
         # get the temperature series
         temps = odf['Calibrated Temperature 1']
-
+#         print('temps: ', temps)
         # get the index where surfer exits the water
         exit_index = self.get_water_exit_index(temps, threshold, med)
+#         print('exit index: ', exit_index)
 
         # get the time where the surfer enters the water in the ocean dataframe
-        endTime = odf.iloc[exit_index]['Time']
-        endTime /= 1000
+        end_time = odf.iloc[exit_index]['Time']
+        end_time /= 1000
 
         # find the index in motion dataframe that matches with end index calculated from ocean dataframe
-        endIdx = mdf.iloc[(mdf['Time']-endTime).abs().argsort()[:1]]
-        return mdf.loc[:endIdx.index[0]], odf.head(exit_index)
+        end_idx = mdf.iloc[(mdf['Time']-end_time).abs().argsort()[:1]]
+        return mdf.loc[:end_idx.index[0]], odf.head(exit_index)
 
 
     # calculate the index in ocean dataframe that the surfer enters the water
@@ -288,11 +300,15 @@ class RideModule:
 
             else:
                 above = False
-                firstInstance = 0
+                firstInstance = -1
             count += 1 
+            
+       
 
         return firstInstance
     
+
+
     # Find nearest value in ncTime array to inputted UNIX Timestamp
     def find_nearest(self, array, value):
         idx = (np.abs(array-value)).argmin()
@@ -362,6 +378,7 @@ class RideModule:
         # get the times of the first and last reading
         df = df.reset_index()
         df = df.set_index('UTC')
+        print('df length: ', len(df))
         start_time = pd.to_datetime(df.index[0]).strftime('%Y-%m-%dT%H:%M:%S')
         end_time = pd.to_datetime(df.index[-1]).strftime('%Y-%m-%dT%H:%M:%S')
         return start_time, end_time
@@ -395,6 +412,9 @@ class RideModule:
         unixend = self.getUnixTimestamp(end_time,"%Y-%m-%dT%H:%M:%S")
         future_date = self.find_nearest(waveTime, unixend)  # Find the closest unix timestamp
         wave_end_index = np.where(waveTime==future_date)[0][0]  # Grab the index number of found date 
+
+        if (wave_start_index - wave_end_index == 0): wave_end_index += 1
+
         
         # account for index offsets
 #         wave_start_index -= 14

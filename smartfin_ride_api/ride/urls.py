@@ -27,6 +27,7 @@ urlpatterns = [
     path('motion-data/<str:rideId>/', views.motionData, name='motion-data'),
     # path('ocean-list/', views.oceanList, name='ocean-list'),
     path('ride-detail/<str:rideId>/', views.rideDetail, name='ride-detail'),
-    # path('motion-detail/<str:rideId>/', views.motionDetail, name='motion-detail'),
+    # path('motion-detail/<str:rideId>/', views.motionDetail, name='motion-detail'),\
+    path('buoy-list/', views.buoyList, name='buoy-list'),
     # path('ocean-detail/<str:rideId>/', views.oceanDetail, name='ocean-detail')
 ]
