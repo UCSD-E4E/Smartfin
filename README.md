@@ -13,3 +13,5 @@ The Smartfin Project aims to unite the surfing community and the research commun
 ![text](https://github.com/hwanggit/Smartfin/blob/master/Images/Screen%20Shot%202019-05-08%20at%202.01.41%20PM.png)
 
 
+## Project Devloper Guide
+to get a copy of this repository on your local machine clone this respository:
