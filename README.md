@@ -15,5 +15,6 @@ The Smartfin Project aims to unite the surfing community and the research commun
 
 ## Project Devloper Guide
 to get a copy of this repository on your local machine clone this respository you can either:
-- download zip file: 
+- download zip file: click the green Code button, and select download ZIP file
 - clone using command line: navigate to the directory you want the project folder in and type: "git clone https://github.com/UCSD-E4E/Smartfin.git'
+
