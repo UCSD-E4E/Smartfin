@@ -19,14 +19,22 @@ from . import views
 
 urlpatterns = [
     path('', views.rideOverview, name='ride-overview'),
+
     path('ride-list/', views.rideList, name='ride-list'),
-    path('ride-create/<str:rideId>/', views.rideCreate, name='ride-create'),
-    path('height-list/<str:location>/', views.heightList, name='height-list'),
-    path('temp-list/<str:location>/', views.tempList, name='temp-list'),
+
+    path('ride-get/<str:rideId>/', views.rideGet, name='ride-get-single'),
+    path('many/ride-get/<int:count>/', views.rideGetMany, name='ride-get-many'),
+
+    path('field-get/<str:rideId>/<str:fields>/', views.fieldGet, name='field-get'),
+    path('many/field-get/<str:fields>/<int:count>/', views.fieldGetMany, name='field-get-many'),
+
+    path('ride-locate/<str:location>/', views.rideFindByLoc, name='ride-locate'),
+
+    path('ride-date/<str:startDate>/<str:endDate>/', views.rideFindByDate, name='ride-date'),
+
     path('update-heights/', views.updateHeights, name='update-heights'),
     path('motion-data/<str:rideId>/', views.motionData, name='motion-data'),
     # path('ocean-list/', views.oceanList, name='ocean-list'),
-    path('ride-detail/<str:rideId>/', views.rideDetail, name='ride-detail'),
     # path('motion-detail/<str:rideId>/', views.motionDetail, name='motion-detail'),\
     path('buoy-list/', views.buoyList, name='buoy-list'),
     # path('ocean-detail/<str:rideId>/', views.oceanDetail, name='ocean-detail')

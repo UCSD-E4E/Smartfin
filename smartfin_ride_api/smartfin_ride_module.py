@@ -379,8 +379,10 @@ class RideModule:
         df = df.reset_index()
         df = df.set_index('UTC')
         print('df length: ', len(df))
-        start_time = pd.to_datetime(df.index[0]).strftime('%Y-%m-%dT%H:%M:%S')
-        end_time = pd.to_datetime(df.index[-1]).strftime('%Y-%m-%dT%H:%M:%S')
+
+        start_time = df.index[0].timestamp()
+        end_time = df.index[-1].timestamp()
+        print('TYPEYTPYPESDF: ', type(df.index[0]))
         return start_time, end_time
     
 
@@ -405,11 +407,11 @@ class RideModule:
         Hs = nc.variables['waveHs'][:]
         
         # find the 30 minute chunks that correspond with smartfin ride timeframe
-        unixstart = self.getUnixTimestamp(start_time,"%Y-%m-%dT%H:%M:%S")
+        unixstart = start_time
         nearest_date = self.find_nearest(waveTime, unixstart)  # Find the closest unix timestamp
         wave_start_index = np.where(waveTime==nearest_date)[0][0]  # Grab the index number of found date
 
-        unixend = self.getUnixTimestamp(end_time,"%Y-%m-%dT%H:%M:%S")
+        unixend = end_time
         future_date = self.find_nearest(waveTime, unixend)  # Find the closest unix timestamp
         wave_end_index = np.where(waveTime==future_date)[0][0]  # Grab the index number of found date 
 
@@ -435,11 +437,11 @@ class RideModule:
         Ts = nc.variables['sstSeaSurfaceTemperature'][:]
         
         # find the 30 minute chunks that correspond with smartfin ride timeframe
-        unixstart = self.getUnixTimestamp(start_time,"%Y-%m-%dT%H:%M:%S")
+        unixstart = start_time
         nearest_date = self.find_nearest(sstTime, unixstart)  # Find the closest unix timestamp
         temp_start_index = np.where(sstTime==nearest_date)[0][0]  # Grab the index number of found date
 
-        unixend = self.getUnixTimestamp(end_time,"%Y-%m-%dT%H:%M:%S")
+        unixend = end_time
         future_date = self.find_nearest(sstTime, unixend)  # Find the closest unix timestamp
         temp_end_index = np.where(sstTime==future_date)[0][0]  # Grab the index number of found date 
         
