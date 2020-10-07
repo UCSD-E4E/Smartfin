@@ -1,7 +1,5 @@
 from django.db import models
 
-# TODO: move CDIP measurements to buoy database, add functionality to pass in ride id arrays to get all rides within arrays, create function that returns ride ids given a date
-
 # Create your models here.
 class RideData(models.Model):
 
@@ -10,8 +8,8 @@ class RideData(models.Model):
     loc2 = models.CharField(max_length=50, blank=True, null=True)
     loc3 = models.CharField(max_length=50, blank=True, null=True)
 
-    startTime = models.IntegerField(blank=True, null=True)
-    endTime = models.IntegerField(blank=True, null=True)
+    startTime = models.CharField(max_length=20, blank=True, null=True)
+    endTime = models.CharField(max_length=20, blank=True, null=True)
 
     heightSmartfin = models.FloatField(blank=True, null=True)
     heightList = models.TextField(blank=True, null=True)
@@ -32,11 +30,10 @@ class RideData(models.Model):
     oceanData = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.rideId
+        return 'ride'
 
     def getHeights(self):
         return {
-            'rideId': self.rideId,
             'heightSmartfin': self.heightSmartfin,
             'heightCDIP': self.heightCDIP,
             'startTime': self.startTime
@@ -44,7 +41,6 @@ class RideData(models.Model):
 
     def getTemps(self):
         return {
-            'rideId': self.rideId,
             'tempSmartfin': self.tempSmartfin,
             'tempCDIP': self.tempCDIP,
             'startTime': self.startTime

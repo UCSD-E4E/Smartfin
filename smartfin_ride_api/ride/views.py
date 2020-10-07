@@ -15,20 +15,28 @@ from .models import RideData, Buoys
 import json
 import random
 
+# TODO: combine get many with the location and date views
+
 
 # Create your views here.
 @api_view(['GET'])
 def rideOverview(request):
     # list of url patterns in this api
     api_urls = {
-        # list of all tasks
-        'List': '/ride-list/',
-        # detailed view of one task
-        'Detail View': '/ride-detail/<str:pk>/',
-        # create update and delete functions
-        'Create' : '/ride-create/',
-        'Update' : '/ride-update/<str:pk>/',
-        'Delete' : '/ride-delete/<stk:pk>/',
+        'List all ride ids': '/ride-list/',
+
+        'Get single ride': '/ride-get/<str:rideId>/',
+        'Get random set of rides': '/many/ride-get/<int:count>/',
+        'Filter rides by location': '/location/ride-get/<str:location>/',
+        'Filter rides by date': '/date/ride-get/<str:startDate>/<str:endDate>/',
+
+        'Get single ride attribute': 'field-get/<str:rideId>/<str:fields>/',
+        'Get attributes of random set of rides': 'random/field-get/<int:count>/<str:fields>/',
+        'Get attributes of rides filtered by location': 'location/field-get/<str:location>/<str:fields>/', 
+        'Get attributes of rides filtered by date': 'date/field-get/<str:startDate>/<str:endDate>/<str:fields>/',
+
+        'Update heights of all rides in database': 'update-heights/',
+        'Get list of active CDIP buoys': 'buoy-list/'
     }
 
     return Response(api_urls)
@@ -80,75 +88,24 @@ def rideGet(request, rideId):
 
 
 @api_view(['GET'])
-def rideGetMany(request, count):
+def rideGetRandom(request, count):
 
-    rd = RideData.objects.all()
-    print(len(rd))
-    if count > len(rd):
-        print('Not enough rides in database')
-        return
-    
-    rideList = RideData.objects.all()
-    data = random.sample(list(rideList), count)
-    serializer = RideSerializer(data, many=True)
+    rideSet = RideData.objects.all()
+    if count > 0:
+        if count > len(rideSet):
+            print('Not enough rides in database')
+            return
+        rideSet = RideData.objects.all()
+        rideSet = random.sample(list(rideSet), count)
+    serializer = RideSerializer(rideSet, many=True)
     return Response(serializer.data)
 
 
-
-# get single field from ride
-@api_view(['GET']) 
-def fieldGet(request, rideId, fields):
-
-    
-    
-    attributes = []
-
-    if ':' in fields:
-        attributes = fields.split(':')
-    else:
-        attributes.append(fields)
- 
-    data = {}
-    
-    rd = RideData.objects.get(rideId=rideId)
-    for attribute in attributes:
-        data[attribute] = getattr(rd, attribute)
-
-
-    return JsonResponse(data)
-
-
-# get single field from multiple random rides
 @api_view(['GET'])
-def fieldGetMany(request, fields, count):
-
-    fields = 'rideId:' + fields
-
-    attributes = []
-
-    if ':' in fields:
-        attributes = fields.split(':')
-        print(attributes)
-
-    else:
-        attributes.append(fields)
-    
-    fieldList = RideData.objects.all().values_list(*attributes)
-    print(fieldList)
-    fieldList = random.sample(list(fieldList), count)
-    data = {'data': [dict(zip(attributes, values)) for values in fieldList]}
-    print(data)
-    return JsonResponse(data)
-
-    
-
-
-
-@api_view(['GET'])
-def rideFindByLoc(request, location):
+def rideGetLocation(request, location):
     # return all ride ids if all locations are specified
     if (location == 'all'):
-        rd = RideData.objects.all()
+        rideSet = RideData.objects.all()
     # only return ids in the specified location
     else:
         if ':' in location:
@@ -157,17 +114,17 @@ def rideFindByLoc(request, location):
             loc1 = location
             loc3 = location
         # here | is being used as set union not bitwise OR
-        rd = RideData.objects.filter(Q(loc1=loc1) | Q(loc2=loc1) | Q(loc3=loc1) | Q(loc1=loc3) | Q(loc2=loc3) | Q(loc3=loc3) )
+        rideSet = RideData.objects.filter(Q(loc1=loc1) | Q(loc2=loc1) | Q(loc3=loc1) | Q(loc1=loc3) | Q(loc2=loc3) | Q(loc3=loc3))
 
-    # build a list of all the ride ids
-    data = [ride.rideId for ride in rd]
-    data = {'ids': data}
-    return JsonResponse(data)
+    serializer = RideSerializer(rideSet, many=True)
+    return Response(serializer.data)
 
-  
+
 @api_view(['GET'])
-def rideFindByDate(request, startDate, endDate):
-
+def rideGetDate(request, startDate, endDate):
+    
+    if startDate == 'all':
+        rideSet = RideData.objects.all
     try:     
         startDate = int(startDate)
         endDate = int(endDate)
@@ -175,10 +132,110 @@ def rideFindByDate(request, startDate, endDate):
         return JsonResponse({'error': 'dates must be formatted in unix time'})
 
     # get all rides that occur after the startDate
-    rd = RideData.objects.filter(Q(startTime__gte=startDate) & Q(endTime__lte=endDate))
-    # build a list of all the ride ids
-    data = [ride.rideId for ride in rd]
-    data = {'ids': data}
+    rideSet = RideData.objects.filter(Q(startTime__gte=startDate) & Q(endTime__lte=endDate))
+    serializer = RideSerializer(rideSet, many=True)
+    return Response(serializer.data)
+
+
+# get single field from ride
+@api_view(['GET']) 
+def fieldGet(request, rideId, fields):
+
+    # parse attributes
+    attributes = []
+    if ':' in fields:
+        attributes = fields.split(':')
+    else:
+        attributes.append(fields)
+ 
+    data = {}
+    
+    field = RideData.objects.get(rideId=rideId)
+    for attribute in attributes:
+        data[attribute] = getattr(field, attribute)
+
+    return JsonResponse(data)
+
+
+# get single field from multiple random rides
+@api_view(['GET'])
+def fieldGetRandom(request, fields, count):
+
+    # parse attributes 
+    if 'rideId' not in fields:
+        fields = 'rideId:' + fields
+    attributes = []
+    if ':' in fields:
+        attributes = fields.split(':')
+    else:
+        attributes.append(fields)
+
+    # build set if ride attributes
+    fieldSet = RideData.objects.all().values_list(*attributes)
+    if count > 0:
+        if count > len(fieldSet):
+            print('Not enough rides in database')
+            return
+        fieldSet = random.sample(list(fieldSet), count)
+
+    # format data to send back
+    data = {'data': [dict(zip(attributes, values)) for values in fieldSet]}
+    return JsonResponse(data)
+
+
+@api_view(['GET'])
+def fieldGetLocation(request, fields, location):
+
+    # parse attributes
+    attributes = []
+    if ':' in fields:
+        attributes = fields.split(':')
+
+    else:
+        attributes.append(fields)
+
+    # return all ride ids if all locations are specified
+    if (location == 'all'):
+        fieldSet = RideData.objects.all()
+        fieldSet = fieldSet.values_list(*attributes)
+    # only return ids in the specified location
+    else:
+        if ':' in location:
+            loc1, loc3 = location.split(':')
+        else:
+            loc1 = location
+            loc3 = location
+        # here | is being used as set union not bitwise OR
+        fieldSet = RideData.objects.filter(Q(loc1=loc1) | Q(loc2=loc1) | Q(loc3=loc1) | Q(loc1=loc3) | Q(loc2=loc3) | Q(loc3=loc3))
+        fieldSet = fieldSet.values_list(*attributes)
+    
+    fieldSet = RideData.objects.all().values_list(*attributes)
+    data = {'data': [dict(zip(attributes, values)) for values in fieldSet]}
+    return JsonResponse(data)
+
+
+@api_view(['GET'])
+def fieldGetDate(request, startDate, endDate, fields):
+    
+     # parse attributes
+    attributes = []
+    if ':' in fields:
+        attributes = fields.split(':')
+
+    else:
+        attributes.append(fields)
+
+    # parse dates
+    try:     
+        startDate = int(startDate)
+        endDate = int(endDate)
+    except:
+        return JsonResponse({'error': 'dates must be formatted in unix time'})
+
+    # get all rides that occur after the startDate and before end date
+    fieldSet = RideData.objects.filter(Q(startTime__gte=startDate) & Q(endTime__lte=endDate))
+    fieldSet = fieldSet.values_list(*attributes)
+    data = {'data': [dict(zip(attributes, values)) for values in fieldSet]}
     return JsonResponse(data)
 
 
@@ -206,24 +263,6 @@ def updateHeights(request):
         ride.save() # this will update only
 
     return JsonResponse({'success': 'rides updated '})
-
-
-
-
-# return motion data of one ride, or multiple rides
-@api_view(['GET'])
-def motionData(request, rideId='all'):
-
-    # either return motion data of all rides or one ride
-    if rideId == 'all':
-        rd = RideData.objects.all()
-    else:
-        rd = RideData.objects.filter(rideId=rideId)
-
-    # return motion data as JSON object
-    data = rd.values_list('motionData', flat=True)
-    print(data)
-    return Response({'data': data[0]})
 
 
 

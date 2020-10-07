@@ -23,19 +23,16 @@ urlpatterns = [
     path('ride-list/', views.rideList, name='ride-list'),
 
     path('ride-get/<str:rideId>/', views.rideGet, name='ride-get-single'),
-    path('many/ride-get/<int:count>/', views.rideGetMany, name='ride-get-many'),
+    path('random/ride-get/<int:count>/', views.rideGetRandom, name='ride-get-random'),
+    path('location/ride-get/<str:location>/', views.rideGetLocation, name='ride-get-location'),
+    path('date/ride-get/<str:startDate>/<str:endDate>/', views.rideGetDate, name='ride-get-date'),
 
     path('field-get/<str:rideId>/<str:fields>/', views.fieldGet, name='field-get'),
-    path('many/field-get/<str:fields>/<int:count>/', views.fieldGetMany, name='field-get-many'),
-
-    path('ride-locate/<str:location>/', views.rideFindByLoc, name='ride-locate'),
-
-    path('ride-date/<str:startDate>/<str:endDate>/', views.rideFindByDate, name='ride-date'),
+    path('random/field-get/<int:count>/<str:fields>/', views.fieldGetRandom, name='field-get-random'),
+    path('location/field-get/<str:location>/<str:fields>/', views.fieldGetLocation, name='field-get-location'),
+    path('date/field-get/<str:startDate>/<str:endDate>/<str:fields>/', views.fieldGetDate, name='field-get-date'),
 
     path('update-heights/', views.updateHeights, name='update-heights'),
-    path('motion-data/<str:rideId>/', views.motionData, name='motion-data'),
-    # path('ocean-list/', views.oceanList, name='ocean-list'),
-    # path('motion-detail/<str:rideId>/', views.motionDetail, name='motion-detail'),\
+   
     path('buoy-list/', views.buoyList, name='buoy-list'),
-    # path('ocean-detail/<str:rideId>/', views.oceanDetail, name='ocean-detail')
 ]

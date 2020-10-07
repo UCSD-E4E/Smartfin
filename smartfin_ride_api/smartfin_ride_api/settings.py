@@ -26,7 +26,7 @@ SECRET_KEY = 'y(4(nldej8z9qmgvtz79e_go+3==nq!#v%=e)he#wj=igrini7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['lit-sands-95859.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -125,6 +125,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
 
 # filepath of our file firectory
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
